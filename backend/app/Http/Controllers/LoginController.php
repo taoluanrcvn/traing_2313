@@ -6,6 +6,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -26,7 +27,9 @@ class LoginController extends Controller
                 'messages' => $credentials->errors(),
             ]);
         }
+
         $data = $credentials->validated();
+
         $email = $data['email'];
         $password = $data['password'];
         $remember = (boolean) $request->remember;
@@ -47,16 +50,24 @@ class LoginController extends Controller
             ]);
         }
 
-        $tokenResult = $user->createToken('authToken')->plainTextToken;
+//        $tokenResult = $user->createToken('authToken')->plainTextToken;
+
+        if (! $token = auth('api')->login( $user )) {
+            return response()->json(['messages' => 'Unauthorized'], 401);
+        }
         $user->last_login_at = Carbon::now('Asia/Ho_Chi_Minh')->format('Y-m-d H:i:s');;
         $user->last_login_ip = $request->ip();
         $user->save();
+        return $this->createNewToken($token);
 
+    }
+
+    protected function createNewToken($token){
         return response()->json([
-            'status_code' => true,
-            'access_token' => $tokenResult,
-            'token_type' => 'Bearer',
+            'access_token' => $token,
+            'token_type' => 'bearer',
+//            'expires_in' => auth('api')->factory()->getTTL() * 60,
+//            'user' => auth('api')->user()
         ]);
-
     }
 }

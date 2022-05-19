@@ -309,7 +309,9 @@ export default {
           this.userTo = users.to;
         }
       } catch (e) {
-          console.log(e)
+        // xử lý status code 401 thì log-out
+        console.log('xử lý catch')
+        console.log(e.status)
       }
       finally {
         this.loadingTable = false;

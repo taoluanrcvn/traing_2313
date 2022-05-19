@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use function PHPUnit\Framework\isNull;
+use Tymon\JWTAuth\Facades\JWTAuth as auth;
 
 class UserController extends Controller
 {
@@ -71,6 +71,14 @@ class UserController extends Controller
         return response()->json([
             "statusCode" => true,
             "data" => $idUserBlock
+        ]);
+    }
+
+    public function test(Request $request) {
+        return response()->json([
+            "statusCode" => $request->all(),
+            "data" => auth::user(),
+            "hi" => auth::parseToken()->authenticate()
         ]);
     }
 }

@@ -17,9 +17,19 @@ use Illuminate\Support\Facades\Route;
 */
 Route::post('/login', [LoginController::class, 'authenticate']);
 
-//Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//    return $request->user();
-//});
+Route::middleware('auth:api')->get('/test', function (Request $request) {
+   return response()->json([
+        "statusCode" => true
+    ]);
+
+});
+Route::group(['middleware' => ['jwt.verify']], function() {
+    Route::get('/test', [UserController::class, 'test']);
+//    Route::resources([
+//        'user' => UserController::class
+//    ]);
+
+});
 
 Route::resources([
     'user' => UserController::class

@@ -6,9 +6,10 @@ export const ServiceUser = {
            const response = await callApi.getRequest(API_CONSTANT.GET_USERS, params);
            return response
         } catch (e) {
-            return e
+            throw e
         }
     },
+
     async updateUser(params) {
         try {
             const response = await callApi.postRequest(API_CONSTANT.GET_USERS, params);

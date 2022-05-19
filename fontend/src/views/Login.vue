@@ -100,7 +100,7 @@ export default {
                     data.append('email', this.email);
                     data.append('password', this.password);
                     data.append('remember', JSON.stringify(this.remember));
-                    const response = await callApi.postRequest(API_CONSTANT.LOGIN, data);
+                    const response = await callApi.postRequest(API_CONSTANT.LOGIN, data, false);
                     if (!response.status && response.messages) {
                         const errors = response.messages;
                         console.log(errors)
@@ -112,10 +112,7 @@ export default {
                         }
                         return;
                     }
-                  localStorage.setItem('token', response.access_token)
-                  localStorage.setItem('email', this.email)
-                  // this.$cookies.set("token", response.access_token, Infinity);
-                    // window.location.href = window.location.origin + '/products'
+                    localStorage.setItem('token', response.access_token)
                     this.$router.push('users')
                 } catch (e) {
                     console.log(e)
