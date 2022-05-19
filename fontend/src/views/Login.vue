@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import { Axios } from '../utils/axios.js'
+import { callApi } from '../utils/axios.js'
 import { API_CONSTANT } from '../utils/api.constains'
 export default {
   data() {
@@ -100,7 +100,7 @@ export default {
                     data.append('email', this.email);
                     data.append('password', this.password);
                     data.append('remember', JSON.stringify(this.remember));
-                    const response = await Axios.postRequest(API_CONSTANT.LOGIN, data);
+                    const response = await callApi.postRequest(API_CONSTANT.LOGIN, data);
                     if (!response.status && response.messages) {
                         const errors = response.messages;
                         console.log(errors)
@@ -116,7 +116,7 @@ export default {
                   localStorage.setItem('email', this.email)
                   // this.$cookies.set("token", response.access_token, Infinity);
                     // window.location.href = window.location.origin + '/products'
-                    this.$router.push('products')
+                    this.$router.push('users')
                 } catch (e) {
                     console.log(e)
                 }

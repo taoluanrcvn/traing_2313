@@ -1,18 +1,26 @@
 import axios from 'axios'
+axios.defaults.withCredentials = true;
+axios.defaults.headers.common = {
+  "X-Referer": window.location.href
+};
+axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
 
-export const Axios = {
+
+export const callApi = {
   async postRequest (url, body) {
     try {
-      // const headerRequest = { 'Content-Type': 'multipart/form-data'};
       const response = await axios.post(url, body)
       return response.data
     } catch (e) {
       return e
     }
   },
+
   async getRequest (url, param) {
     try {
-      const response = await axios.get(url, { params: param })
+      const response = await axios.get(url, {
+        params: param
+      })
       return response.data
     } catch (e) {
       return e.response

@@ -34,13 +34,25 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => $timestamp
             ]
         ]);
-        DB::table('mst_users')->insert([
-            'name' => 'admin',
-            'email' => 'admin@gmail.com',
-            'password' => md5('admin2022'),
-            'group_role' => 'Admin',
-            'created_at' => $timestamp,
-            'updated_at' => $timestamp
-        ]);
+        for($i = 0 ; $i < 10 ; $i++) {
+            DB::table('mst_users')->insert([
+                'name' => 'Nguyên Văn ' . $i,
+                'email' => 'nguyenvan' . $i .'@gmail.com',
+                'password' => md5('nguyenvan' . $i),
+                'group_role' => 'Editor',
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp
+            ]);
+        }
+        for($i = 10 ; $i < 20 ; $i++) {
+            DB::table('mst_users')->insert([
+                'name' => 'Nguyên Văn ' . $i,
+                'email' => 'nguyenvan' . $i .'@gmail.com',
+                'password' => md5('nguyenvan' . $i),
+                'group_role' => 'Reviewer',
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp
+            ]);
+        }
     }
 }
