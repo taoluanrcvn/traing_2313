@@ -50,8 +50,6 @@ class LoginController extends Controller
             ]);
         }
 
-//        $tokenResult = $user->createToken('authToken')->plainTextToken;
-
         if (! $token = auth('api')->login( $user )) {
             return response()->json(['messages' => 'Unauthorized'], 401);
         }
@@ -63,11 +61,13 @@ class LoginController extends Controller
     }
 
     protected function createNewToken($token){
+        $user = auth('api')->user();
+        unset($user['password']);
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
 //            'expires_in' => auth('api')->factory()->getTTL() * 60,
-//            'user' => auth('api')->user()
+            'user' => $user
         ]);
     }
 }

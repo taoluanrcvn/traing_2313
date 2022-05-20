@@ -44,7 +44,7 @@
         >
           <v-select
               v-model="search.group"
-              :items="list_group"
+              :items="groups"
               label="Nhóm"
               hide-details
               dense
@@ -60,7 +60,7 @@
         >
           <v-select
               v-model="search.status"
-              :items="list_status"
+              :items="statusUser"
               label="Trạng thái"
               hide-details
               dense
@@ -105,12 +105,13 @@
         </v-col>
       </v-row>
     </v-form>
+
     <v-row class="mt-5">
       <v-col cols="12">
         <v-btn
             depressed
             color="success"
-            @click="addUser()"
+            @click="showDialogUser()"
         >
           <v-icon left>
             mdi-account-plus
@@ -179,6 +180,7 @@
                     color="primary"
                     v-bind="attrs"
                     v-on="on"
+                    @click="showDialogEditUser(item)"
                 >
                   <v-icon>mdi-clipboard-account</v-icon>
                 </v-btn>
@@ -192,7 +194,7 @@
                     color="secondary"
                     v-bind="attrs"
                     v-on="on"
-                    @click="deleteUser(item.id)"
+                    @click="confirmDeleteUser(item)"
                 >
                   <v-icon>mdi-account-remove</v-icon>
                 </v-btn>
@@ -204,20 +206,20 @@
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
                     icon
-                    color="error"
+                    :color="item.is_active === 1 ? 'error' : 'success'"
                     v-bind="attrs"
                     v-on="on"
-                    @click="blockUser(item.id)"
+                    @click="confirmBlockUser(item)"
                 >
-                  <v-icon> mdi-account-key</v-icon>
+                  <v-icon>{{item.is_active === 0 ? 'mdi-account-key' : 'mdi-account-alert'}}</v-icon>
                 </v-btn>
               </template>
-              <span class="hi">Khóa</span>
+              <span class="hi">{{item.is_active === 0 ? 'Mở khóa' : 'Khóa'}}</span>
             </v-tooltip>
           </template>
         </v-data-table>
         <div class="text-center pt-2" v-if="totalUser > itemsPerPage">
-          <span class="overline">Hiển thị từ {{userFrom}} ~ {{userTo}} trong tổng số {{totalUser}} user</span>
+          <span class="overline">Hiển thị từ {{userFrom}} ~ {{userTo}} trong tổng số {{totalUser}} người dùng</span>
           <v-pagination
               v-model="page"
               :length="pageLength"
@@ -225,23 +227,74 @@
         </div>
       </v-col>
     </v-row>
+    <DialogConfirm
+        title="Bạn có chắc muốn khóa người dùng này không?"
+        titleSub="Người dùng sẽ bị khóa và sẽ không đăng nhập được!"
+        @clickAccept="lockOrUnlockUser()"
+        :dialog="dialogLockOrUnlock"
+        @close="dialogLockOrUnlock = false"
+    >
+    </DialogConfirm>
+    <DialogConfirm
+        title="Bạn có chắc muốn xóa người dùng này không?"
+        titleSub="Người dùng này sẽ bị xóa!"
+        @clickAccept="deleteUser()"
+        :dialog="dialogDeleteUser"
+        @close="dialogDeleteUser = false"
+    >
+    </DialogConfirm>
+    <DialogEditUser
+        v-if="dialogEditUser"
+        :dialog="dialogEditUser"
+        :userSelected="userSelected"
+        @close="dialogEditUser = false"
+        type="edit"
+    ></DialogEditUser>
+    <DialogEditUser
+        v-if="dialogAddUser"
+        :dialog="dialogAddUser"
+        :userSelected="userSelected"
+        @successAdd="statusAddUser()"
+        @close="dialogAddUser = false"
+        type="add"
+    ></DialogEditUser>
+    <v-snackbar
+        v-model="notify"
+        :color="notifyColor"
+    >
+      {{ notifyText }}
+
+      <template v-slot:action="{ attrs }">
+        <v-btn
+            color="pink"
+            text
+            v-bind="attrs"
+            @click="notify = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
+
 </template>
 
 <script>
 import Header from '@/components/Header'
 import {ServiceUser} from "@/service/service.user";
-
+import User from '@/utils/class.user'
+import DialogConfirm from "@/components/DialogConfirm";
+import DialogEditUser from "@/components/DialogEditUser";
 
 export default {
-  components: {Header},
+  components: {Header, DialogConfirm, DialogEditUser},
   data() {
     return {
       loadingTable: false,
       loggedIn: false,
       namePage : 'Products',
-      list_group: ['Admin', 'Editor', 'Reviewer'],
-      list_status: [{ value: 0 , text : 'Tạm khóa'}, { value: 1 , text : 'Đang hoạt động'}],
+      groups: ['Admin', 'Editor', 'Reviewer'],
+      statusUser: [{ value: 0 , text : 'Tạm khóa'}, { value: 1 , text : 'Đang hoạt động'}],
       search: {
         name: '',
         email: '',
@@ -271,7 +324,16 @@ export default {
       isSearch: 0,
       userFrom: 0,
       userTo: 0,
-      perPages: [10, 15, 20]
+      perPages: [10, 15, 20],
+      dialogLockOrUnlock: false,
+      dialogDeleteUser: false,
+      dialogEditUser: false,
+      dialogAddUser: false,
+      userSelected: new User(),
+      notify: false,
+      notifyText: '',
+      notifyColor: '',
+      userCurrent: JSON.parse(localStorage.getItem('user'))
     }
   },
   watch: {
@@ -283,7 +345,6 @@ export default {
       }
   },
   created() {
-    // console.log(localStorage.getItem('token'))
     this.getListUser()
   },
   methods: {
@@ -310,7 +371,13 @@ export default {
         }
       } catch (e) {
         // xử lý status code 401 thì log-out
-        console.log('xử lý catch')
+        if (e.response && e.response.status === 401) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            this.$router.push('login')
+          console.log(this.auth.check());
+
+        }
         console.log(e.status)
       }
       finally {
@@ -338,36 +405,93 @@ export default {
       }
     },
 
-    deleteUser(id) {
-
+    confirmBlockUser(user) {
+      if (user.group_role === 'Admin') {
+        this.notification('', 'Người dùng này không thể khóa!')
+        return;
+      }
+      this.userSelected = user;
+      this.dialogLockOrUnlock = true;
     },
 
-   async blockUser(id) {
-     const response = await ServiceUser.blockUser({idUserBlock: id})
-     console.log(response)
+    confirmDeleteUser(user) {
+      if (user.group_role === 'Admin') {
+        this.notification('', 'Người dùng này không thể xóa!')
+        return;
+      }
+      this.userSelected = user;
+      this.dialogDeleteUser = true;
+    },
+
+    async lockOrUnlockUser() {
+      try {
+        const type = this.userSelected.is_active == 1 ? 'lock' : 'unlock';
+        const response = await ServiceUser.blockAndUnBlockUser({idUserBlock: this.userSelected.id, type: type});
+        if (response.statusCode) {
+          const idxUserSelected = this.users.findIndex(user => user.id === this.userSelected.id);
+          this.users[idxUserSelected].is_active = type === 'lock' ? 0 : 1;
+          this.notification('success', `Đã ${type === 'lock' ? 'khóa' : 'mở'} ${this.userSelected.name} thành công`);
+          return;
+        }
+        this.notification('error', response.messages)
+      } catch (e) {
+        console.log(e)
+      }
+      finally {
+        this.dialogLockOrUnlock = false;
+      }
    },
 
-    addUser(id) {
+    async deleteUser() {
+      try {
+        const response = await ServiceUser.deleteUser({idUserDelete: this.userSelected.id});
+        if (response.statusCode) {
+          await this.getListUser();
+          this.notification('success', 'Đã xóa thành công');
+          return;
+        }
+        this.notification('error', response.messages)
+      } catch (e) {
+        console.log(e)
+      }
+      finally {
+        this.dialogDeleteUser = false;
+      }
+    },
 
+    notification(type, messages) {
+      this.notify = true;
+      this.notifyText = messages;
+      switch (type) {
+        case 'error':
+          this.notifyColor = 'error'
+          break;
+        case 'success':
+          this.notifyColor = 'success'
+          break;
+       default:
+         this.notifyColor = 'warning'
+          break;
+      }
+    },
+
+    showDialogEditUser (user) {
+      this.userSelected = Object.assign({}, user);
+      this.dialogEditUser = true;
+    },
+
+    showDialogUser () {
+      this.dialogAddUser = true;
+      this.userSelected = new User()
+    },
+
+    async statusAddUser(data) {
+      this.notification('success', 'Đã thêm thành công');
+      await this.getListUser();
     }
   }
 }
-function getData (n) {
-  const result = [];
-  for (let i = 0 ; i < n ; i++) {
-    const rndInt = Math.floor(Math.random() * 2) + 1
-    const group_role = ['Admin', 'Editor', 'Reviewer']
-    const user = {
-      id: i,
-      name: `Nguyễn văn ${i}`,
-      email: `email${i}@gmail.com`,
-      group_role: group_role[rndInt],
-      is_active: 'Đang hoạt động',
-    }
-    result.push(user);
-  }
-  return result;
-}
+
 </script>
 
 <style scoped>

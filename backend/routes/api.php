@@ -25,14 +25,11 @@ Route::middleware('auth:api')->get('/test', function (Request $request) {
 });
 Route::group(['middleware' => ['jwt.verify']], function() {
     Route::get('/test', [UserController::class, 'test']);
-//    Route::resources([
-//        'user' => UserController::class
-//    ]);
-
+    Route::resources([
+        'user' => UserController::class
+    ]);
+    Route::post('/user/lock-or-unlock', [UserController::class, 'lockOrUnlockUser']);
 });
 
-Route::resources([
-    'user' => UserController::class
-]);
-Route::post('/user/block', [UserController::class, 'blockUser']);
+
 

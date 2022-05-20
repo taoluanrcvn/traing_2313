@@ -103,7 +103,6 @@ export default {
                     const response = await callApi.postRequest(API_CONSTANT.LOGIN, data, false);
                     if (!response.status && response.messages) {
                         const errors = response.messages;
-                        console.log(errors)
                         if (errors.password) {
                             this.errorsPassword = errors.password;
                         }
@@ -113,6 +112,7 @@ export default {
                         return;
                     }
                     localStorage.setItem('token', response.access_token)
+                    localStorage.setItem('user', JSON.stringify(response.user))
                     this.$router.push('users')
                 } catch (e) {
                     console.log(e)

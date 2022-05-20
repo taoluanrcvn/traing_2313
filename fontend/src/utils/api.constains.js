@@ -6,9 +6,8 @@ const PATH = {
 export const API_CONSTANT = {
   LOGIN: DOMAIN + 'login',
 
-  GET_USERS: PATH.USER,
-  BLOCK_USER: PATH.USER + 'block' ,
-  DELETE_USER: PATH.USER + 'delete',
+  USERS: PATH.USER,
+  LOCK_OR_UNBLOCK_USER: PATH.USER + 'lock-or-unlock' ,
   UPDATE_USER: PATH.USER
 
 }

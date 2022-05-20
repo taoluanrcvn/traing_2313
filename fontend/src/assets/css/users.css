@@ -3,3 +3,6 @@
     color: white;
     font-size: larger;
 }
+.font-s {
+    font-size: small!important;
+}
