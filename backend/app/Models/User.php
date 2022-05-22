@@ -52,6 +52,8 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
     ];
 
+    protected $appends = ["is_admin"];
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -60,5 +62,15 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    /**
+     * Determine if the user is an administrator.
+     *
+     * @return \Illuminate\Database\Eloquent\Casts\Attribute
+     */
+    public function getIsAdminAttribute()
+    {
+        return $this->group_role === 'Admin' ? true : false;
     }
 }

@@ -93,7 +93,7 @@ class UserController extends Controller
         if ($userNew['group_role'] === 'Admin' && $userCurrent->id !== 1) {
             return response()->json([
                 "statusCode" => false,
-                "messages" => [ "role" => "Bạn không có quyền thực hiện tính năng này"]
+                "messages" => [ "group_role" => "Bạn không được thêm người dùng ở nhóm này"]
             ]);
         }
 
@@ -158,14 +158,6 @@ class UserController extends Controller
         ]);
     }
 
-    public function test(Request $request) {
-        return response()->json([
-            "statusCode" => $request->all(),
-            "data" => auth::user(),
-            "hi" => auth::parseToken()->authenticate()
-        ]);
-    }
-
     /**
      * Remove the specified resource from storage.
      *
@@ -193,6 +185,75 @@ class UserController extends Controller
         return response()->json([
             "statusCode" => true,
             $user
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, User $user)
+    {
+        $credentials = Validator::make( $request->params, [
+            'email' => 'required|email',
+            'group_role' => 'required',
+            'is_active' => 'required|integer',
+            'name' => 'required|min:5',
+            'password' => 'sometimes|min:5',
+        ], [
+            'email.required'       => 'E-mail không đúng định dạng',
+            'is_active.required' => 'Chưa chọn trạng thái',
+            'group_role.required' => 'Chưa chọn nhóm',
+            'name.required' => 'Chưa nhập tên',
+            'name.min' => 'Tên phải dài hơn 5 ký tự',
+            'password.min' => 'Mật khẩu phải dài hơn 5 ký tự',
+        ]);
+
+        if ($credentials->fails()) {
+            return response()->json([
+                'status_code' => false,
+                'messages' => $credentials->errors(),
+            ]);
+        }
+
+        $userNew = $credentials->validated();
+
+        if ($userNew['email'] !== $user["email"]) {
+            $existEmail = User::where('email', $userNew['email'])->first();
+            if ($existEmail) {
+                return response()->json([
+                    'status_code' => false,
+                    'messages' => ["email" => "Email này đã có người sử dụng"],
+                ]);
+            }
+        }
+
+        if (isset($userNew["password"])) {
+            $userNew["password"] = md5($userNew["password"]);
+        }
+
+        User::where('id', $user["id"])->update($userNew);
+
+        return response()->json([
+            "statusCode" => true,
+        ]);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\Response
+     */
+    public function show(User $user)
+    {
+        $userCurrent = auth::user();
+        return response()->json([
+            "statusCode" => true,
+            "data" => $userCurrent
         ]);
     }
 }

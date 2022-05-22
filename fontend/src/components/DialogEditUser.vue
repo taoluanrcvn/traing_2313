@@ -72,6 +72,7 @@
                         :items="groups"
                         :rules="groupRules"
                         label="Nhóm"
+                        :error-messages="errorsGroup"
                         dense
                         outlined
                     ></v-select>
@@ -117,14 +118,16 @@
 
 <script>
 import {ServiceUser} from "@/service/service.user";
+import {Toast} from "@/utils/toast";
+import {Role} from "@/utils/class.user";
 
 export default {
   name: "DialogEditUser",
-  props: ['dialog', 'group', 'userSelected', 'type'],
-  emits: ['clickSubmit', 'close', 'failAdd'],
+  props: ['dialog', 'group', 'userSelected', 'type', 'userCurrent'],
+  emits: [ 'close', 'loadData'],
   data() {
     return {
-      user: this.userSelected,
+      user: Object.assign({}, this.userSelected),
       groups: ['Admin', 'Editor', 'Reviewer'],
       statusUser: [{ value: 0 , text : 'Tạm khóa'}, { value: 1 , text : 'Đang hoạt động'}],
       emailRules: [
@@ -146,8 +149,10 @@ export default {
       errorsPassword: null,
       errorsEmail: null,
       errorsConfirmPassword: null,
-      password: null,
-      passwordConfirm: null
+      password: this.type === 'edit' ? 'Abc123test' : null,
+      passwordConfirm: this.type === 'edit' ? 'Abc123test' : null,
+      role: new Role(),
+      errorsGroup: null
     }
   },
   created() {
@@ -156,6 +161,13 @@ export default {
     }
   },
   watch: {
+    'user.group_role' (value) {
+      if (value === this.role.admin && this.userCurrent.id !== 1) {
+        this.errorsGroup = 'Bạn không có quyền chọn nhóm này'
+      } else {
+        this.errorsGroup = null
+      }
+    },
     'user.email' () {
       if (this.errorsEmail) {
         this.errorsEmail = null
@@ -174,25 +186,55 @@ export default {
       this.$emit('close');
     },
     async save() {
+
       const isValid = this.$refs.form.validate()
       if (isValid) {
-        if (this.type === 'add'){
+        if (this.type === 'add') {
+         if (!this.passwordConfirm) {
+           this.errorsConfirmPassword = 'Vui lòng nhập mật khẩu xác nhận';
+         }
           try {
             this.user.password = this.password;
             this.user.passwordConfirm = this.passwordConfirm;
             const response = await ServiceUser.addUser(this.user)
               if (response.statusCode) {
-                this.$emit('close');
-                this.notification('success', 'Đã thêm thành công');
-                await this.getListUser();
-                return;
+                await this.$emit('close');
+                await this.$emit('successFunction');
+                await Toast.show('success', 'Đã thêm thành công');
               } else {
                 const errors = response.messages;
-                this.errorsEmail = errors.email
+                this.errorsEmail = errors.email;
+                this.errorsGroup = errors.group_role;
                 if (errors.role) {
-                  this.notification('error', errors.role);
+                  await Toast.show('error', errors.role);
                 }
               }
+          } catch (e) {
+            console.log(e)
+          }
+        }
+        else {
+          if (this.password !== 'Abc123test') {
+            this.user.password = this.password;
+          } else {
+            delete this.user.password;
+          }
+          try {
+
+            const response = await ServiceUser.updateUser(this.user);
+            if (response.statusCode) {
+              this.$emit('loadData');
+              await this.$emit('close');
+              await Toast.show('success', 'Cập nhật thành công');
+
+            } else {
+              const errors = response.messages;
+              this.errorsEmail = errors.email;
+              this.errorsGroup = errors.group_role;
+              if (errors.role) {
+                await Toast.show('error', errors.role);
+              }
+            }
           } catch (e) {
 
           }

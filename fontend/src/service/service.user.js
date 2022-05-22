@@ -11,20 +11,29 @@ export const ServiceUser = {
         }
     },
 
-    async updateUser(params) {
+    async isAuthenticated(user) {
         try {
-            const response = await callApi.postRequest(API_CONSTANT.USERS, params);
-            return response;
+            const response = await callApi.getRequest(API_CONSTANT.USERS + `${user.id}`);
+            return response
         } catch (e) {
-            return e;
+            throw e
         }
     },
 
-    async blockAndUnBlockUser(params) {
+    async updateUser(user) {
+        try {
+            const response = await callApi.putRequest(API_CONSTANT.USERS  + `${user.id}` , user);
+            return response;
+        } catch (e) {
+            throw e;
+        }
+    },
+
+    async blockAndUnBlockUser(user) {
         try {
             const body = new FormData();
-            body.append('idUserBlock', params.idUserBlock);
-            body.append('type', params.type);
+            body.append('idUserBlock', user.idUserBlock);
+            body.append('type', user.type);
             const response = await callApi.postRequest(API_CONSTANT.LOCK_OR_UNBLOCK_USER, body);
             return response;
         } catch (e) {
@@ -32,22 +41,24 @@ export const ServiceUser = {
         }
     },
 
-    async deleteUser(params) {
-        // const body = new FormData();
-        // body.append('idUserDelete', params.idUserDelete)
-        const response = await callApi.deleteRequest(API_CONSTANT.USERS + `${params.idUserDelete}`);
+    async deleteUser(user) {
+        try {
+        const response = await callApi.deleteRequest(API_CONSTANT.USERS + `${user.idUserDelete}`);
         return response;
+        } catch (e) {
+            throw e;
+        }
     },
 
-    async addUser(params) {
+    async addUser(user) {
         try {
             const body = new FormData();
-            body.append('name', params.name);
-            body.append('email', params.email)
-            body.append('password', params.password)
-            body.append('password_confirm', params.passwordConfirm)
-            body.append('group_role', params.group_role)
-            body.append('is_active', params.is_active)
+            body.append('name', user.name);
+            body.append('email', user.email)
+            body.append('password', user.password)
+            body.append('password_confirm', user.passwordConfirm)
+            body.append('group_role', user.group_role)
+            body.append('is_active', user.is_active)
             const response = await callApi.postRequest(API_CONSTANT.USERS, body);
             return response;
         } catch (e) {

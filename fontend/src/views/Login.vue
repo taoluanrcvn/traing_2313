@@ -101,7 +101,7 @@ export default {
                     data.append('password', this.password);
                     data.append('remember', JSON.stringify(this.remember));
                     const response = await callApi.postRequest(API_CONSTANT.LOGIN, data, false);
-                    if (!response.status && response.messages) {
+                    if (!response.statusCode && response.messages) {
                         const errors = response.messages;
                         if (errors.password) {
                             this.errorsPassword = errors.password;
@@ -117,8 +117,6 @@ export default {
                 } catch (e) {
                     console.log(e)
                 }
-                // console.log(this.$refs.form)
-
             }
 
         },

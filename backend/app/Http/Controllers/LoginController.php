@@ -23,7 +23,7 @@ class LoginController extends Controller
 
         if ($credentials->fails()) {
             return response()->json([
-                'status_code' => false,
+                'statusCode' => false,
                 'messages' => $credentials->errors(),
             ]);
         }
@@ -37,7 +37,7 @@ class LoginController extends Controller
         $user = User::where('email', $email)->first();
         if (!$user) {
             return response()->json([
-                'status_code' => false,
+                'statusCode' => false,
                 'messages' => [ 'email' => 'E-mail không tồn tại!'],
             ]);
         }
@@ -45,7 +45,7 @@ class LoginController extends Controller
         $user->makeVisible('password')->toArray();
         if ($user->password !== md5($password)) {
             return response()->json([
-                'status_code' => false,
+                'statusCode' => false,
                 'messages' => [ 'password' => 'Mật khẩu không đúng!'],
             ]);
         }
@@ -64,9 +64,9 @@ class LoginController extends Controller
         $user = auth('api')->user();
         unset($user['password']);
         return response()->json([
+            'statusCode' => true,
             'access_token' => $token,
             'token_type' => 'bearer',
-//            'expires_in' => auth('api')->factory()->getTTL() * 60,
             'user' => $user
         ]);
     }

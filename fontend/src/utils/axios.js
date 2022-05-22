@@ -18,9 +18,7 @@ export const callApi = {
       if (isAuth) {
         axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem("token")}`;
       }
-      const response = await axios.get(url, {
-        params: param
-      })
+      const response = await axios.get(url, { params: param})
       return response.data
     } catch (e) {
       // if (e.response && e.response.status === 401) {
@@ -34,11 +32,21 @@ export const callApi = {
   async deleteRequest(url, param, isAuth = true) {
     try {
       if (isAuth) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${tokenTest}`;
+        axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem("token")}`;
       }
-      const response = await axios.delete(url, {
-        params: param
-      })
+      const response = await axios.delete(url, {params: param})
+      return response.data
+    } catch (e) {
+      throw e.response
+    }
+  },
+
+  async putRequest(url, param, isAuth = true) {
+    try {
+      if (isAuth) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem("token")}`;
+      }
+      const response = await axios.put(url, {params: param})
       return response.data
     } catch (e) {
       throw e.response

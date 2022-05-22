@@ -1,0 +1,263 @@
+<v-container fluid>
+    <v-row class="w-100 mb-4">
+        <Header :userCurrent="userCurrent"/>
+    </v-row>
+
+    <v-form>
+        <v-row class="d-flex justify-center mt-4">
+            <v-col
+                    cols="12"
+                    md="4"
+                    sm="4"
+                    lg="2"
+            >
+                <v-text-field
+                        v-model="search.name"
+                        label="Tên"
+                        hide-details
+                        dense
+                        outlined
+                ></v-text-field>
+            </v-col>
+
+            <v-col
+                    cols="12"
+                    md="4"
+                    sm="4"
+                    lg="2"
+            >
+                <v-text-field
+                        v-model="search.email"
+                        label="Email"
+                        hide-details
+                        dense
+                        outlined
+                ></v-text-field>
+            </v-col>
+
+            <v-col
+                    cols="12"
+                    md="4"
+                    sm="4"
+                    lg="2"
+            >
+                <v-select
+                        v-model="search.group"
+                        :items="groups"
+                        label="Nhóm"
+                        hide-details
+                        dense
+                        outlined
+                ></v-select>
+            </v-col>
+
+            <v-col
+                    cols="12"
+                    md="4"
+                    sm="4"
+                    lg="2"
+            >
+                <v-select
+                        v-model="search.status"
+                        :items="statusUser"
+                        label="Trạng thái"
+                        hide-details
+                        dense
+                        outlined
+                ></v-select>
+            </v-col>
+
+            <v-col
+                    md="4"
+                    sm="2"
+                    lg="1"
+                    class="d-flex justify-center align-center"
+            >
+                <v-btn
+                        depressed
+                        color="primary"
+                        @click="searchUser()"
+                >
+                    <v-icon left>
+                        mdi-magnify
+                    </v-icon>
+                    Tìm kiếm
+                </v-btn>
+            </v-col>
+
+            <v-col
+                    md="4"
+                    sm="2"
+                    lg="2"
+                    class="d-flex justify-center justify-sm-start align-center"
+            >
+                <v-btn
+                        depressed
+                        color="error"
+                        @click="clearSearch()"
+                >
+                    <v-icon left>
+                        mdi-magnify-minus
+                    </v-icon>
+                    Xóa tìm kiếm
+                </v-btn>
+            </v-col>
+        </v-row>
+    </v-form>
+
+    <v-row class="mt-5">
+        <v-col cols="12">
+            <v-btn
+                    depressed
+                    color="success"
+                    @click="showDialogAddUser()"
+            >
+                <v-icon left>
+                    mdi-account-plus
+                </v-icon>
+                Thêm user
+            </v-btn>
+            <div class="float-end">
+                <span class="pl-4">Hiện thị tối đa</span>
+                <v-menu
+                        rounded
+                        offset-y
+                >
+                    <template v-slot:activator="{ attrs, on }">
+                        <v-btn
+                                color="primary"
+                                class="black--textt ml-3 elevation-0"
+                                v-bind="attrs"
+                                v-on="on"
+                                small
+                        >
+                            {{ itemsPerPage }}
+                        </v-btn>
+                    </template>
+
+                    <v-list>
+                        <v-list-item
+                                v-for="item in perPages"
+                                :key="item"
+                                link
+                        >
+                            <v-list-item-title v-text="item" @click="itemsPerPage = item"></v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+            </div>
+
+        </v-col>
+        <v-col cols="12">
+            <v-data-table
+                    :headers="headers"
+                    :items="users"
+                    :page.sync="page"
+                    :items-per-page="itemsPerPage"
+                    hide-default-footer
+                    class="elevation-1 "
+                    @page-count="pageCount = $event"
+                    :loading="loadingTable"
+                    loading-text="Đang tải...."
+            >
+                <template v-slot:item.id="{ item , index }">
+                    {{userFrom+index}}
+                </template>
+                <template v-slot:item.is_active="{ item }">
+              <span v-if="item.is_active" class="success--text">
+                  Đang hoạt động
+              </span>
+                    <span v-else class="red--text">
+                  Tạm khóa
+              </span>
+                </template>
+                <template v-slot:item.act="{ item }">
+                    <v-tooltip top>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                    icon
+                                    color="primary"
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    @click="showDialogEditUser(item)"
+                            >
+                                <v-icon>mdi-clipboard-account</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Sửa</span>
+                    </v-tooltip>
+                    <v-tooltip top>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                    icon
+                                    color="secondary"
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    @click="confirmDeleteUser(item)"
+                            >
+                                <v-icon>mdi-account-remove</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>Xóa</span>
+                    </v-tooltip>
+
+                    <v-tooltip top>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                    icon
+                                    :color="item.is_active === 1 ? 'error' : 'success'"
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    @click="confirmLockOrUnlockUser(item)"
+                            >
+                                <v-icon>{{item.is_active === 0 ? 'mdi-account-key' : 'mdi-account-alert'}}</v-icon>
+                            </v-btn>
+                        </template>
+                        <span class="hi">{{item.is_active === 0 ? 'Mở khóa' : 'Khóa'}}</span>
+                    </v-tooltip>
+                </template>
+            </v-data-table>
+            <div class="text-center pt-2" v-if="totalUser > itemsPerPage">
+                <span class="overline">Hiển thị từ {{userFrom}} ~ {{userTo}} trong tổng số {{totalUser}} người dùng</span>
+                <v-pagination
+                        v-model="page"
+                        :length="pageLength"
+                ></v-pagination>
+            </div>
+        </v-col>
+    </v-row>
+    <DialogEditUser
+            v-if="dialogEditUser"
+            :dialog="dialogEditUser"
+            :userSelected="userSelected"
+            @close="dialogEditUser = false"
+            :userCurrent="userCurrent"
+            @loadData="getListUser"
+            type="edit"
+    ></DialogEditUser>
+    <DialogEditUser
+            v-if="dialogAddUser"
+            :dialog="dialogAddUser"
+            :userSelected="userSelected"
+            @close="dialogAddUser = false"
+            :userCurrent="userCurrent"
+            type="add"
+    ></DialogEditUser>
+    <v-snackbar
+            v-model="notify"
+            :color="notifyColor"
+    >
+        {{ notifyText }}
+
+        <template v-slot:action="{ attrs }">
+            <v-btn
+                    color="pink"
+                    text
+                    v-bind="attrs"
+                    @click="notify = false"
+            >
+                Close
+            </v-btn>
+        </template>
+    </v-snackbar>
+</v-container>

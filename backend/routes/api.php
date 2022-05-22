@@ -24,7 +24,6 @@ Route::middleware('auth:api')->get('/test', function (Request $request) {
 
 });
 Route::group(['middleware' => ['jwt.verify']], function() {
-    Route::get('/test', [UserController::class, 'test']);
     Route::resources([
         'user' => UserController::class
     ]);

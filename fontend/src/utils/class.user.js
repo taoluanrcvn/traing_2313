@@ -1,4 +1,4 @@
-class User {
+export class User {
     id = null;
     name = null;
     email = null;
@@ -8,5 +8,12 @@ class User {
     group_role = 'Admin' | 'Reviewer' | 'Editor';
     last_login_at = null;
     last_login_ip = null;
+    is_admin = false;
 }
-export default User;
+
+export class Role {
+    admin = 'Admin';
+    editor = 'Editor';
+    reviewer = 'Reviewer';
+}
+// export default {User , Role};
