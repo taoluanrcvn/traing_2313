@@ -15,7 +15,7 @@ return [
         'required' => 'E-mail không được để trống!',
         'not_exist' => 'E-mail không tồn tại!',
         'malformed' => 'E-mail không đúng định dạng',
-        'exist' =>  'E-mail đã tồn tại'
+        'exist' =>  'E-mail đã tồn tại!'
     ],
     'password' => [
         'fail' => 'Mật khẩu không đúng!',

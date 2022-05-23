@@ -177,11 +177,12 @@ export default {
           const idxUserSelected = this.users.findIndex(user => user.id === this.userSelected.id);
           this.users[idxUserSelected].is_active = type === 'lock' ? 0 : 1;
           await Toast.show('success', `Đã ${type === 'lock' ? 'khóa' : 'mở'} ${this.userSelected.name} thành công`)
-          return;
         }
-        await Toast.show('error', response.messages)
       } catch (e) {
-        console.log(e)
+        if (e.status && e.status === 421) {
+          const errors = e.data.messages;
+          await Toast.show('error', errors.details)
+        }
       }
       finally {
         this.dialogLockOrUnlock = false;
@@ -196,9 +197,12 @@ export default {
           await Toast.show('success', 'Đã xóa thành công!')
           return;
         }
-        await Toast.show('error', response.messages)
+
       } catch (e) {
-        console.log(e)
+        if (e.status && e.status === 421) {
+          const errors = e.data.messages;
+          await Toast.show('error', errors.detail)
+        }
       }
       finally {
         this.dialogDeleteUser = false;
@@ -255,7 +259,6 @@ export default {
     addSuccess (userUpdated) {
       const findIndex = this.users.findIndex(user => user.id === userUpdated.id)
       this.users[findIndex] = userUpdated;
-      console.log(this.users[findIndex])
     }
   }
 }

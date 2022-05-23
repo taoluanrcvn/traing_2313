@@ -184,6 +184,7 @@ export default {
         if (value.includes(' ')) {
           this.password = value.replace(/^\s+|\s+$/gm,'')
         }
+        this.checkPassword(value, this.passwordConfirm)
         const regex = new RegExp('(?=[A-Za-z0-9]+$)^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{6,}).*$');
         if (!regex.test(value)) {
           this.errorsPassword = 'Mật khẩu phải có chữ hoa, thường, và số!';
@@ -211,20 +212,20 @@ export default {
             this.user.password = this.password;
             this.user.passwordConfirm = this.passwordConfirm;
             const response = await ServiceUser.addUser(this.user)
-              if (response.statusCode) {
-                await this.$emit('close');
-                await this.$emit('successFunction');
-                await Toast.show('success', 'Đã thêm thành công');
-              } else {
-                const errors = response.messages;
-                this.errorsEmail = errors.email;
-                this.errorsGroup = errors.group_role;
-                if (errors.role) {
-                  await Toast.show('error', errors.role);
-                }
-              }
+            if (response.statusCode) {
+              await this.$emit('close');
+              await this.$emit('successFunction');
+              await Toast.show('success', 'Đã thêm thành công');
+            }
           } catch (e) {
-            console.log(e)
+            if (e.status && e.status === 421) {
+              const errors = e.data.messages;
+              this.errorsEmail = errors.email;
+              this.errorsGroup = errors.group_role;
+              if (errors.role) {
+                await Toast.show('error', errors.role);
+              }
+            }
           }
         }
         else {
@@ -234,23 +235,21 @@ export default {
             delete this.user.password;
           }
           try {
-
             const response = await ServiceUser.updateUser(this.user);
             if (response.statusCode) {
               this.$emit('loadData');
               await this.$emit('close');
               await Toast.show('success', 'Cập nhật thành công');
-
-            } else {
-              const errors = response.messages;
+            }
+          } catch (e) {
+            if (e.status && e.status === 421) {
+              const errors = e.data.messages;
               this.errorsEmail = errors.email;
               this.errorsGroup = errors.group_role;
               if (errors.role) {
                 await Toast.show('error', errors.role);
               }
             }
-          } catch (e) {
-
           }
 
         }

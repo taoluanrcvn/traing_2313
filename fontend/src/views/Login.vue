@@ -117,8 +117,8 @@ export default {
                         localStorage.setItem('email', this.email);
                         localStorage.setItem('pws', this.password)
                       }
-                      localStorage.setItem('token', response.access_token)
-                      localStorage.setItem('user', JSON.stringify(response.user))
+                      localStorage.setItem('token', response.data.access_token)
+                      localStorage.setItem('user', JSON.stringify(response.data.user))
                       this.$router.push('users')
                     }
                 } catch (e) {
