@@ -1,15 +1,14 @@
-<template src="./template.html"></template>
+<template src="./UserTemplate.html"></template>
 <style src="./style.css"></style>
 <script>
 import Header from '@/components/Header'
 import {ServiceUser} from "@/service/service.user";
 import {User, Role} from '@/utils/class.user'
-import DialogConfirm from "@/components/DialogConfirm";
 import DialogEditUser from "@/components/DialogEditUser";
 import Swal from 'sweetalert2'
 import {Toast} from "@/utils/toast";
 export default {
-  components: {Header, DialogConfirm, DialogEditUser},
+  components: {Header, DialogEditUser},
   data() {
     return {
       loadingTable: false,
@@ -93,15 +92,12 @@ export default {
           this.userTo = users.to;
         }
       } catch (e) {
-        // xử lý status code 401 thì log-out
         if (e.response && e.response.status === 401) {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
             this.$router.push('login')
-            console.log(this.auth.check());
 
         }
-        console.log(e.status)
       }
       finally {
         this.loadingTable = false;
@@ -109,16 +105,17 @@ export default {
     },
 
     async searchUser() {
-      if (this.search.name || this.search.email || this.search.group || (this.search.status === 1 || this.search.status === 0)) {
+      if (this.hasSearch()) {
           this.isSearch = true;
           this.page = 1
           await this.getListUser();
+      } else {
+        await Toast.show('warning', 'Vui lòng nhập vào thông tin để tìm kiếm!');
       }
-
     },
 
     async clearSearch() {
-      if (this.search.name || this.search.email || this.search.group || (this.search.status === 1 || this.search.status === 0)) {
+      if (this.hasSearch()) {
         this.search.group = '';
         this.search.status = '';
         this.search.name = '';
@@ -239,13 +236,20 @@ export default {
 
     hasPermissionEditUser(user) {
       if ( (this.userCurrent.group_role === 'Reviewer' && user.group_role !== 'Reviewer')
-          || (this.userCurrent.group_role === 'Editor' && user.is_admin)
+          || (this.userCurrent.group_role === 'Editor' && user.is_admin )
+          || (this.userCurrent.group_role === 'Editor' && user.group_role === 'Editor' && user.id !== this.userCurrent.id)
           || (user.is_admin && user.id === 1 && this.userCurrent.id !== 1)
           || (user.is_admin && user.id !== 1 && this.userCurrent.id !== user.id && this.userCurrent.id !== 1)
       ) {
           return false;
       }
       return true;
+    },
+    hasSearch() {
+      if (this.search.name || this.search.email || this.search.group || (this.search.status === 1 || this.search.status === 0)) {
+        return true
+      }
+      return false
     },
 
     addSuccess (userUpdated) {

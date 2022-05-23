@@ -2,9 +2,9 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import Login from '../views/Login'
-import Customer from '../views/Customer'
+import Customer from '../views/customer/Customer'
 import Product from '../views/Product'
-import User from '../views/User/User'
+import User from '../views/user/User'
 import {ServiceUser} from "@/service/service.user";
 Vue.use(VueRouter)
 

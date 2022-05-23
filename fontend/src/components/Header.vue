@@ -41,7 +41,7 @@
                 icon
                 @click="logout()"
             >
-              <v-icon color="red">mdi-export-variant</v-icon>
+              <v-icon color="red">mdi-exit-to-app</v-icon>
             </v-btn>
           </template>
           <span>Thoát</span>

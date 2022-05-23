@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Response\ResponseJson;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
+
+    /** Người dùng đăng nhập  */
     public function authenticate(Request $request) {
         $credentials = Validator::make($request->all(), [
             'email' => 'required|email',
@@ -17,7 +21,7 @@ class LoginController extends Controller
         ], [
             'email.required'    => 'E-mail không được để trống!',
             'email.email'       => 'E-mail không đúng định dạng!',
-            'password.required' => 'E-mail không được để trống!',
+            'password.required' => 'Mật khẩu không được để trống!',
             'password.min' => 'Mật khẩu phải hơn 5 ký tự!',
         ]);
 
@@ -25,35 +29,36 @@ class LoginController extends Controller
             return response()->json([
                 'statusCode' => false,
                 'messages' => $credentials->errors(),
-            ]);
+            ], Response::HTTP_OK);
         }
 
         $data = $credentials->validated();
 
         $email = $data['email'];
         $password = $data['password'];
-        $remember = (boolean) $request->remember;
-
         $user = User::where('email', $email)->first();
         if (!$user) {
-            return response()->json([
-                'statusCode' => false,
-                'messages' => [ 'email' => 'E-mail không tồn tại!'],
-            ]);
+           return ResponseJson::error([ 'email' => trans('messages.email_not_exist')]);
         }
 
         $user->makeVisible('password')->toArray();
         if ($user->password !== md5($password)) {
-            return response()->json([
-                'statusCode' => false,
-                'messages' => [ 'password' => 'Mật khẩu không đúng!'],
-            ]);
+            return ResponseJson::error([ 'password' => trans('messages.password_fail')]);
+        }
+
+        if ($user->is_delete == 1) {
+            return ResponseJson::error([ 'other' => trans('messages.user_delete')]);
+        }
+
+        if ($user->is_active != 1) {
+            return ResponseJson::error([ 'other' => trans('messages.user_lock')]);
         }
 
         if (! $token = auth('api')->login( $user )) {
-            return response()->json(['messages' => 'Unauthorized'], 401);
+            return ResponseJson::error([ 'other' => trans('messages.unauthorized')], Response::HTTP_UNAUTHORIZED);
         }
-        $user->last_login_at = Carbon::now('Asia/Ho_Chi_Minh')->format('Y-m-d H:i:s');;
+
+        $user->last_login_at = Carbon::now()->format('Y-m-d H:i:s');;
         $user->last_login_ip = $request->ip();
         $user->save();
         return $this->createNewToken($token);

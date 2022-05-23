@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $timestamp = Carbon::now('Asia/Ho_Chi_Minh')->format('Y-m-d H:i:s');
+        $timestamp = Carbon::now(env('TIME_ZONE', 'Asia/Ho_Chi_Minh'))->format('Y-m-d H:i:s');
         DB::table('mst_shop')->insert([
             [
                 'shop_name' => 'Amazon',
@@ -33,6 +33,14 @@ class DatabaseSeeder extends Seeder
                 'created_at' => $timestamp,
                 'updated_at' => $timestamp
             ]
+        ]);
+        DB::table('mst_users')->insert([
+            'name' => 'Admin root',
+            'email' => 'admin@gmail.com',
+            'password' => md5('admin2022'),
+            'group_role' => 'Admin',
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp
         ]);
         for($i = 0 ; $i < 10 ; $i++) {
             DB::table('mst_users')->insert([

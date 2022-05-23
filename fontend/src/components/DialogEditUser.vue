@@ -136,7 +136,7 @@ export default {
       ],
       passwordRules: [
         v => !!v || 'Mật khẩu không được để trống!',
-        v => (v && v.length > 5) || 'Mật khẩu phải hơn 5 ký tự!',
+        v => (v && v.length > 5) || 'Mật khẩu phải hơn 5 ký tự!'
       ],
       groupRules: [
         v => !!v || 'Không được để trống!',
@@ -168,16 +168,30 @@ export default {
         this.errorsGroup = null
       }
     },
-    'user.email' () {
+    'user.email' (value) {
+      if (value.includes(' ')) {
+        this.user.email = value.replace(/^\s+|\s+$/gm,'')
+      }
       if (this.errorsEmail) {
         this.errorsEmail = null
       }
     },
     passwordConfirm (value) {
-     this.checkPassword(this.password, value)
+      this.checkPassword(this.password, value)
     },
     password (value) {
-      this.checkPassword(value, this.passwordConfirm)
+      if (value) {
+        if (value.includes(' ')) {
+          this.password = value.replace(/^\s+|\s+$/gm,'')
+        }
+        const regex = new RegExp('(?=[A-Za-z0-9]+$)^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{6,}).*$');
+        if (!regex.test(value)) {
+          this.errorsPassword = 'Mật khẩu phải có chữ hoa, thường, và số!';
+        } else {
+          this.checkPassword(value, this.passwordConfirm)
+          this.errorsPassword = null;
+        }
+      }
     }
 
   },

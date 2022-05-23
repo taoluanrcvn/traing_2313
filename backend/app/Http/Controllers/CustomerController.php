@@ -3,18 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Repositories\Interfaces\ICustomerRepository;
+use http\Env\Response;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
 {
+    protected $customerRepository;
+
+    public function __construct(ICustomerRepository $customerRepository)
+    {
+        $this->middleware('jwt.verify');
+        $this->customerRepository = $customerRepository;
+    }
+
     /**
-     * Display a listing of the resource.
+     * Lấy danh sách khách hàng (tìm kiếm, phần trang)..
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $perPage = $request->perPage;
+        $isSearch = $request->isSearch;
+        if (!$isSearch) {
+            $customer = $this->customerRepository->getAll($perPage);
+        } else {
+            $customer = $this->customerRepository->getCustomers($perPage, $request->isActive, $request->customer_name, $request->email, $request->address);
+        }
+        return response()->json([
+            "statusCode" => true,
+            "data" => $customer,
+        ]);
     }
 
     /**
@@ -28,7 +48,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Thêm khách hàng mới
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -61,7 +81,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Cập nhật thông tin khách hàng
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Customer  $customer
@@ -73,7 +93,7 @@ class CustomerController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Xóa khách hàng
      *
      * @param  \App\Models\Customer  $customer
      * @return \Illuminate\Http\Response

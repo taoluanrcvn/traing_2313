@@ -1,6 +1,6 @@
 import {callApi} from "@/utils/axios";
 import {API_CONSTANT} from "@/utils/api.constains";
-import classUser from "@/utils/class.user";
+import {User} from "@/utils/class.user";
 export const ServiceUser = {
     async getUsers(params) {
         try {

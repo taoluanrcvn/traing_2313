@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -17,17 +18,14 @@ use Illuminate\Support\Facades\Route;
 */
 Route::post('/login', [LoginController::class, 'authenticate']);
 
-Route::middleware('auth:api')->get('/test', function (Request $request) {
-   return response()->json([
-        "statusCode" => true
-    ]);
-
-});
 Route::group(['middleware' => ['jwt.verify']], function() {
-    Route::resources([
-        'user' => UserController::class
-    ]);
+
+    Route::resources(['user' => UserController::class]);
+
+    Route::resources(['customer' => CustomerController::class]);
+
     Route::post('/user/lock-or-unlock', [UserController::class, 'lockOrUnlockUser']);
+
 });
 
 

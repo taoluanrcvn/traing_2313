@@ -2,16 +2,16 @@
     <v-app id="inspire">
         <v-container fluid >
             <v-row class="w-100 d-flex justify-center">
-                <v-col lg="6" md="12">
+                <v-col lg="4" md="12">
                     <v-card elevation="4" light tag="section">
                         <v-card-title>
                             <v-layout align-center justify-space-between>
                                 <h3 class="headline">
                                     Login
                                 </h3>
-<!--                                <v-flex>-->
-<!--                                    <v-img :alt="platformName" class="ml-3" contain width="400" height="82px" position="center right" src="https://vieclamvui.com/upload/img/700/2021/06/16/a_1623828860539.png"></v-img>-->
-<!--                                </v-flex>-->
+                                <v-flex>
+                                    <v-img :alt="platformName"  class="ml-3 float-right" contain width="400" height="82px" position="center right" src="../assets/logo_rivercrane.png"></v-img>
+                                </v-flex>
                             </v-layout>
                         </v-card-title>
                         <v-divider></v-divider>
@@ -21,20 +21,20 @@
                                     v-model="valid"
                                     lazy-validation>
                                 <v-text-field
-                                    outline
+                                    outlined
                                     label="Email"
                                     type="email"
                                     :rules="emailRules"
                                     :error-messages="errorsEmail"
                                     class="mb-2"
-                                    v-model="email"></v-text-field>
+                                    v-model.trim="email"></v-text-field>
                                 <v-text-field
-                                    outlin
+                                    outlined
                                     label="Mật khẩu"
                                     type="password"
                                     :rules="passwordRules"
                                     :error-messages="errorsPassword"
-                                    v-model="password"></v-text-field>
+                                    v-model.trim="password"></v-text-field>
                             </v-form>
                         </v-card-text>
                         <v-divider></v-divider>
@@ -59,6 +59,7 @@
 <script>
 import { callApi } from '../utils/axios.js'
 import { API_CONSTANT } from '../utils/api.constains'
+import {Toast} from "@/utils/toast";
 export default {
   data() {
         return {
@@ -73,7 +74,7 @@ export default {
             ],
             passwordRules: [
                 v => !!v || 'Mật khậu không được để trống!',
-                v => (v && v.length > 5) || 'Mật khẩu phải hơn 5 ký tự!',
+                v => (v && v.length > 5) || 'Mật khẩu phải hơn 5 ký tự!'
             ],
             errorsEmail: null,
             errorsPassword: null,
@@ -81,17 +82,27 @@ export default {
     },
     watch: {
         email() {
-            if (this.errorsEmail) {
-                this.errorsEmail = null;
-            }
+          if (this.errorsEmail) {
+              this.errorsEmail = null;
+          }
+
         },
         password() {
-            if (this.errorsPassword) {
-                this.errorsPassword = null;
-            }
+          if (this.errorsPassword) {
+              this.errorsPassword = null;
+          }
+
         }
     },
-    methods: {
+  created() {
+    const email = localStorage.getItem('email');
+    const pws = localStorage.getItem('pws')
+    if (email && pws) {
+        this.email = email;
+        this.password = pws;
+    }
+  },
+  methods: {
         login: async function () {
             const isValid = this.$refs.form.validate()
             if (isValid) {
@@ -101,21 +112,28 @@ export default {
                     data.append('password', this.password);
                     data.append('remember', JSON.stringify(this.remember));
                     const response = await callApi.postRequest(API_CONSTANT.LOGIN, data, false);
-                    if (!response.statusCode && response.messages) {
-                        const errors = response.messages;
-                        if (errors.password) {
-                            this.errorsPassword = errors.password;
-                        }
-                        if (errors.email) {
-                            this.errorsEmail = errors.email;
-                        }
-                        return;
+                    if (response.statusCode) {
+                      if (this.remember) {
+                        localStorage.setItem('email', this.email);
+                        localStorage.setItem('pws', this.password)
+                      }
+                      localStorage.setItem('token', response.access_token)
+                      localStorage.setItem('user', JSON.stringify(response.user))
+                      this.$router.push('users')
                     }
-                    localStorage.setItem('token', response.access_token)
-                    localStorage.setItem('user', JSON.stringify(response.user))
-                    this.$router.push('users')
                 } catch (e) {
-                    console.log(e)
+                  if (e.status && e.status === 421) {
+                    const errors = e.data.messages;
+                    if (errors.password) {
+                      this.errorsPassword = errors.password;
+                    }
+                    if (errors.email) {
+                      this.errorsEmail = errors.email;
+                    }
+                    if (errors.other) {
+                      await Toast.show('error', errors.other);
+                    }
+                  }
                 }
             }
 

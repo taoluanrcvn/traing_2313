@@ -16,4 +16,4 @@ export class Role {
     editor = 'Editor';
     reviewer = 'Reviewer';
 }
-// export default {User , Role};
+// export default {user , Role};

@@ -11,7 +11,7 @@ use Tymon\JWTAuth\Facades\JWTAuth as auth;
 class UserController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Lấy danh sách người dùng (tìm kiếm, phần trang).
      *
      * @return \Illuminate\Http\Response
      */
@@ -51,7 +51,7 @@ class UserController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Thêm người dùng mới
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -126,6 +126,7 @@ class UserController extends Controller
         ]);
     }
 
+    /** Khóa và mở khóa cho user */
     public function lockOrUnlockUser(Request $request) {
 
         $idUserBlock = (int) $request->idUserBlock;
@@ -159,14 +160,14 @@ class UserController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Xóa user.
      *
      * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
     public function destroy(User $user)
     {
-        if ($user->group_role === "admin") {
+        if ($user->group_role === "Admin") {
             return response()->json([
                 "statusCode" => false,
                 "messages" => "Người dùng này không được xóa!"
@@ -189,7 +190,7 @@ class UserController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Cập nhật thông tin người dùng
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\User  $user
@@ -243,7 +244,7 @@ class UserController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Trả về thông tin user khi xác thực.
      *
      * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
