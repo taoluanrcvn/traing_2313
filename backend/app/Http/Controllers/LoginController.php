@@ -19,17 +19,14 @@ class LoginController extends Controller
             'email' => 'required|email',
             'password' => 'required|min:5',
         ], [
-            'email.required'    => 'E-mail không được để trống!',
-            'email.email'       => 'E-mail không đúng định dạng!',
-            'password.required' => 'Mật khẩu không được để trống!',
-            'password.min' => 'Mật khẩu phải hơn 5 ký tự!',
+            'email.required'    => trans('messages.email.required'),
+            'email.email'       => trans('messages.email.malformed'),
+            'password.required' => trans('messages.password.required'),
+            'password.min' => trans('messages.password.min'),
         ]);
 
         if ($credentials->fails()) {
-            return response()->json([
-                'statusCode' => false,
-                'messages' => $credentials->errors(),
-            ], Response::HTTP_OK);
+            return ResponseJson::error($credentials->errors());
         }
 
         $data = $credentials->validated();
@@ -38,38 +35,33 @@ class LoginController extends Controller
         $password = $data['password'];
         $user = User::where('email', $email)->first();
         if (!$user) {
-           return ResponseJson::error([ 'email' => trans('messages.email_not_exist')]);
+           return ResponseJson::error(['email' => trans('messages.email.not_exist')]);
         }
 
         $user->makeVisible('password')->toArray();
         if ($user->password !== md5($password)) {
-            return ResponseJson::error([ 'password' => trans('messages.password_fail')]);
+            return ResponseJson::error(['password' => trans('messages.password.fail')]);
         }
 
         if ($user->is_delete == 1) {
-            return ResponseJson::error([ 'other' => trans('messages.user_delete')]);
+            return ResponseJson::error(['other' => trans('messages.user.deleted')]);
         }
 
         if ($user->is_active != 1) {
-            return ResponseJson::error([ 'other' => trans('messages.user_lock')]);
+            return ResponseJson::error(['other' => trans('messages.user.locked')]);
         }
 
         if (! $token = auth('api')->login( $user )) {
-            return ResponseJson::error([ 'other' => trans('messages.unauthorized')], Response::HTTP_UNAUTHORIZED);
+            return ResponseJson::error(['other' => trans('messages.auth.unauthorized')], Response::HTTP_UNAUTHORIZED);
         }
 
         $user->last_login_at = Carbon::now()->format('Y-m-d H:i:s');;
         $user->last_login_ip = $request->ip();
         $user->save();
-        return $this->createNewToken($token);
 
-    }
-
-    protected function createNewToken($token){
         $user = auth('api')->user();
         unset($user['password']);
-        return response()->json([
-            'statusCode' => true,
+        return ResponseJson::success([
             'access_token' => $token,
             'token_type' => 'bearer',
             'user' => $user

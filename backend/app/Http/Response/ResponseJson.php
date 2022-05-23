@@ -6,9 +6,10 @@ use Illuminate\Http\Response;
 
 class ResponseJson
 {
-    public static function success ($code = Response::HTTP_OK) {
+    public static function success($data = [],$code = Response::HTTP_OK) {
         return response()->json([
             'statusCode' => true,
+            'data' => $data
         ], $code);
     }
 

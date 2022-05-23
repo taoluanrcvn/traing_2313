@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Response\ResponseJson;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -13,7 +14,7 @@ class UserController extends Controller
     /**
      * Lấy danh sách người dùng (tìm kiếm, phần trang).
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
@@ -44,10 +45,7 @@ class UserController extends Controller
                     }
                 })->where('is_delete' , 0)->paginate($perPage);;
         }
-        return response()->json([
-            "statusCode" => true,
-            "data" => $users,
-        ]);
+        return ResponseJson::success($users);
     }
 
     /**
@@ -60,10 +58,7 @@ class UserController extends Controller
     {
         $userCurrent = auth::user();
         if ($userCurrent->group_role !== 'Admin') {
-            return response()->json([
-                "statusCode" => false,
-                "messages" => [ "role" => "Bạn không có quyền thực hiện tính năng này"]
-            ]);
+            return ResponseJson::error([ "role" => trans('messages.role.not_permission')]);
         }
         $credentials = Validator::make($request->all(), [
             'email' => 'required|email',
@@ -73,43 +68,31 @@ class UserController extends Controller
             'is_active' => 'required|integer',
             'name' => 'required|min:5'
         ], [
-            'email.email'       => 'E-mail không đúng định dạng',
-            'password.min' => 'Mật khẩu phải hơn 5 ký tự',
-            'is_active.required' => 'Chưa chọn trạng thái',
-            'group_role.required' => 'Chưa chọn nhóm',
-            'name.required' => 'Chưa nhập tên',
-            'name.min' => 'Tên phải dài hơn 5 ký tự',
-            'password_confirm.required' => 'Chưa nhập mật khẩu xác nhận',
+            'email.email' => trans('messages.email.malformed'),
+            'password.min' => trans('messages.password.min'),
+            'is_active.required' => trans('messages.is_active.required'),
+            'group_role.required' => trans('messages.group_role.required'),
+            'name.required' => trans('messages.user.required'),
+            'name.min' => trans('messages.user.min_length_name'),
+            'password_confirm.required' => trans('messages.password_confirm.required'),
         ]);
 
         if ($credentials->fails()) {
-            return response()->json([
-                'status_code' => false,
-                'messages' => $credentials->errors(),
-            ]);
+            return ResponseJson::error($credentials->errors());
         }
         $userNew = $credentials->validated();
 
         if ($userNew['group_role'] === 'Admin' && $userCurrent->id !== 1) {
-            return response()->json([
-                "statusCode" => false,
-                "messages" => [ "group_role" => "Bạn không được thêm người dùng ở nhóm này"]
-            ]);
+            return ResponseJson::error([ 'group_role' => trans('messages.group_role.not_permission')]);
         }
 
         $user = User::where('email', $userNew['email'])->first();
         if ($user) {
-            return response()->json([
-                "statusCode" => false,
-                "messages" => ["email" => "E-mail đã tồn tại"]
-            ]);
+            return ResponseJson::error(['email' => trans('messages.email.exist')]);
         }
 
         if ($userNew["password"] !== $userNew["password_confirm"]) {
-            return response()->json([
-                "statusCode" => false,
-                "messages" => ["password" => "Mật khẩu không khớp"]
-            ]);
+            return ResponseJson::error(['email' => trans('messages.password_confirm.mismatched')]);
         }
 
         $user = new User;
@@ -120,43 +103,28 @@ class UserController extends Controller
         $user->name = $userNew["name"];
         $user->save();
 
-        return response()->json([
-            "statusCode" => true,
-            "data" => $user
-        ]);
+        return ResponseJson::success($user);
     }
 
     /** Khóa và mở khóa cho user */
     public function lockOrUnlockUser(Request $request) {
-
         $idUserBlock = (int) $request->idUserBlock;
         $type = $request->type;
         $userCurrent = auth::user();
         $user = User::where("id", $idUserBlock)->first();
         if (!$user) {
-            return response()->json([
-                "statusCode" => false,
-                "messages" => "Người dùng không tồn tại!"
-            ]);
+            return ResponseJson::error([ 'detail' => trans('messages.user.not_exist')]);
         }
-        if ($user->group_role === "admin") {
-            return response()->json([
-                "statusCode" => false,
-                "messages" => "Người dùng này không được " . $type === 'lock' ? "khóa" : "mở khóa" . "!"
-                ]);
+        if ($user->group_role === "Admin") {
+            return ResponseJson::error([ 'detail' => $type === 'lock' ? trans('messages.user.not_permission_lock') : trans('messages.user.not_permission_unlock')]);
         }
         if ($userCurrent->group_role !== 'Admin') {
-            return response()->json([
-                "statusCode" => false,
-                "messages" => "Bạn không có quyên để thực hiện tính năng này!"
-            ]);
+            return ResponseJson::error([ 'detail' => trans('messages.user.not_permission')]);
         }
 
         $user->is_active = $type === 'lock' ? 0 : 1;
         $user->save();
-        return response()->json([
-            "statusCode" => true,
-        ]);
+        return ResponseJson::success();
     }
 
     /**
@@ -168,25 +136,16 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         if ($user->group_role === "Admin") {
-            return response()->json([
-                "statusCode" => false,
-                "messages" => "Người dùng này không được xóa!"
-            ]);
+            return ResponseJson::error([ 'detail' => trans('messages.user.not_permission_delete')]);
         }
         $userCurrent = auth::user();
         if ($userCurrent->group_role !== 'Admin') {
-            return response()->json([
-                "statusCode" => false,
-                "messages" => "Bạn không có quyên để thực hiện tính năng này!"
-            ]);
+            return ResponseJson::error([ 'detail' => trans('messages.user.not_permission')]);
         }
 
         $user->is_delete = 1;
         $user->save();
-        return response()->json([
-            "statusCode" => true,
-            $user
-        ]);
+        return ResponseJson::success($user);
     }
 
     /**
@@ -205,19 +164,16 @@ class UserController extends Controller
             'name' => 'required|min:5',
             'password' => 'sometimes|min:5',
         ], [
-            'email.required'       => 'E-mail không đúng định dạng',
-            'is_active.required' => 'Chưa chọn trạng thái',
-            'group_role.required' => 'Chưa chọn nhóm',
-            'name.required' => 'Chưa nhập tên',
-            'name.min' => 'Tên phải dài hơn 5 ký tự',
-            'password.min' => 'Mật khẩu phải dài hơn 5 ký tự',
+            'email.required' => trans('messages.email.required'),
+            'is_active.required' => trans('messages.is_active.required'),
+            'group_role.required' => trans('messages.group_role.required'),
+            'name.required' => trans('messages.user.required'),
+            'name.min' => trans('messages.user.min_length_name'),
+            'password.min' => trans('messages.password.min'),
         ]);
 
         if ($credentials->fails()) {
-            return response()->json([
-                'status_code' => false,
-                'messages' => $credentials->errors(),
-            ]);
+            return ResponseJson::error($credentials->errors());
         }
 
         $userNew = $credentials->validated();
@@ -225,10 +181,7 @@ class UserController extends Controller
         if ($userNew['email'] !== $user["email"]) {
             $existEmail = User::where('email', $userNew['email'])->first();
             if ($existEmail) {
-                return response()->json([
-                    'status_code' => false,
-                    'messages' => ["email" => "Email này đã có người sử dụng"],
-                ]);
+                return ResponseJson::error(["email" => trans('messages.email.exist')]);
             }
         }
 
@@ -238,9 +191,7 @@ class UserController extends Controller
 
         User::where('id', $user["id"])->update($userNew);
 
-        return response()->json([
-            "statusCode" => true,
-        ]);
+        return ResponseJson::success();
     }
 
     /**
@@ -252,9 +203,6 @@ class UserController extends Controller
     public function show(User $user)
     {
         $userCurrent = auth::user();
-        return response()->json([
-            "statusCode" => true,
-            "data" => $userCurrent
-        ]);
+        return ResponseJson::success($userCurrent);
     }
 }
