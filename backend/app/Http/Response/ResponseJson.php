@@ -13,7 +13,7 @@ class ResponseJson
         ], $code);
     }
 
-    public static function error($messages = [] , $code = Response::HTTP_MISDIRECTED_REQUEST) {
+    public static function error($messages = [] , $code = Response::HTTP_UNPROCESSABLE_ENTITY) {
         return response()->json([
             'statusCode' => false,
             'messages' => $messages

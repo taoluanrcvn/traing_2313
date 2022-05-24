@@ -38,5 +38,17 @@ return [
     'group_role' => [
         'required' => 'Chưa chọn nhóm',
         'not_permission' => 'Bạn không được thêm người dùng ở nhóm này'
+    ],
+    'attributes' => [
+        'customer_name' => 'Tên khách hàng',
+        'email' => 'Địa chỉ Email',
+        'tel_num' => 'Số điện thoại',
+        'address' => 'Địa chỉ',
+        'is_active' => 'Trạng thái'
+    ],
+    'validate' => [
+        'required' => ':attribute không được chống',
+        'min' => ':attribute không được ngắn hơn :min',
+        'numeric' => ':attribute phải là số'
     ]
 ];

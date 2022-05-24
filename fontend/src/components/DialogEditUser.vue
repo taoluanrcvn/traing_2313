@@ -201,7 +201,6 @@ export default {
       this.$emit('close');
     },
     async save() {
-
       const isValid = this.$refs.form.validate()
       if (isValid) {
         if (this.type === 'add') {
@@ -218,7 +217,7 @@ export default {
               await Toast.show('success', 'Đã thêm thành công');
             }
           } catch (e) {
-            if (e.status && e.status === 421) {
+            if (e.status && e.status === 422) {
               const errors = e.data.messages;
               this.errorsEmail = errors.email;
               this.errorsGroup = errors.group_role;
@@ -242,7 +241,7 @@ export default {
               await Toast.show('success', 'Cập nhật thành công');
             }
           } catch (e) {
-            if (e.status && e.status === 421) {
+            if (e.status && e.status === 422) {
               const errors = e.data.messages;
               this.errorsEmail = errors.email;
               this.errorsGroup = errors.group_role;

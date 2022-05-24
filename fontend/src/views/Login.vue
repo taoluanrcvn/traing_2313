@@ -122,7 +122,7 @@ export default {
                       this.$router.push('users')
                     }
                 } catch (e) {
-                  if (e.status && e.status === 421) {
+                  if (e.status && e.status === 422) {
                     const errors = e.data.messages;
                     if (errors.password) {
                       this.errorsPassword = errors.password;

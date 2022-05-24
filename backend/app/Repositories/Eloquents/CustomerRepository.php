@@ -37,4 +37,12 @@ class CustomerRepository extends BaseRepository implements ICustomerRepository
         return $customers;
     }
 
+    public function existEmailCustomer($email) {
+        return $this->model->where('email', $email)->first();
+    }
+
+    public function addCustomer($customer) {
+        return $this->model->create($customer);
+    }
+
 }

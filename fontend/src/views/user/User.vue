@@ -63,6 +63,7 @@ export default {
         this.getListUser()
       },
       itemsPerPage() {
+        this.page = 1;
         this.getListUser()
       }
   },
@@ -179,7 +180,7 @@ export default {
           await Toast.show('success', `Đã ${type === 'lock' ? 'khóa' : 'mở'} ${this.userSelected.name} thành công`)
         }
       } catch (e) {
-        if (e.status && e.status === 421) {
+        if (e.status && e.status === 422) {
           const errors = e.data.messages;
           await Toast.show('error', errors.details)
         }
@@ -199,7 +200,7 @@ export default {
         }
 
       } catch (e) {
-        if (e.status && e.status === 421) {
+        if (e.status && e.status === 422) {
           const errors = e.data.messages;
           await Toast.show('error', errors.detail)
         }

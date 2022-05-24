@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CustomerAddRequest;
+use App\Http\Requests\CustomerPostRequest;
+use App\Http\Response\ResponseJson;
 use App\Models\Customer;
 use App\Repositories\Interfaces\ICustomerRepository;
 use http\Env\Response;
@@ -53,9 +56,17 @@ class CustomerController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CustomerAddRequest $request)
     {
-        //
+        $validated = $request->validated();
+
+        $existEmail = $this->customerRepository->existEmailCustomer($validated['email']);
+        if ($existEmail) {
+            return ResponseJson::error(["email" => trans('messages.email.exist')]);
+        }
+
+        $addCustomer = $this->customerRepository->addCustomer($validated);
+        return ResponseJson::success($addCustomer);
     }
 
     /**
