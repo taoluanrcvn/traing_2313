@@ -103,9 +103,9 @@
 </template>
 
 <script>
-import login from "@/views/Login";
 import {ServiceCustomer} from "@/service/service.customer";
 import {Toast} from "@/utils/toast";
+import i18n from '@/plugins/i18n'
 
 export default {
   name: "DialogEditAndAddCustomer",
@@ -115,23 +115,24 @@ export default {
     return {
       customer: Object.assign({}, this.customerSelected),
       valid: true,
-      listStatus: [{ value: 0 , text : 'Tạm dừng' }, { value: 1 , text : 'Đang hoạt động' }],
+      listStatus: [{ value: 0 , text :  i18n.t("status.pause")  }, { value: 1 , text : i18n.t("status.is_active") }],
       emailRules: [
-        v => !!v || 'E-mail không được để trống!',
-        v => /.+@.+\..+/.test(v) || 'E-mail không hợp lệ!',
+        v => !!v || i18n.t('roles.required', { field: i18n.t('field.email')}),
+        v => /.+@.+\..+/.test(v) || i18n.t('roles.malformed', { field: i18n.t('field.email')}),
       ],
       nameRules: [
-        v => !!v || 'Không được để trống!',
-        v => (v && v.length > 5) || 'Mật khẩu phải hơn 5 ký tự!',
+        v => !!v || i18n.t('roles.required', { field: i18n.t('field.name')}),
+        v => (v && v.length > 5) || i18n.t('roles.min_length', { field: i18n.t('field.name'), length: 5}),
       ],
       addressRules: [
-        v => !!v || 'Địa chỉ không được để trống!',
+        v => !!v || i18n.t('roles.required', { field: i18n.t('field.address')}),
       ],
       isActiveRules: [
-        v => v !== undefined || 'Chưa chọn trạng thái!'
+        v => v !== undefined || i18n.t('roles.required', { field: i18n.t('field.is_active')})
       ],
       phoneRules: [
-        v => v !== undefined || 'Số điện thoại không được để trống!'
+        v => v !== undefined || i18n.t('roles.required', { field: i18n.t('field.phone')}),
+        v => /^(84|0[3|5|7|8|9])+([0-9]{8})\b$/.test(v) || i18n.t('roles.malformed', { field: i18n.t('field.phone')})
       ],
       errorsPhone: null,
       errorsEmail: null
@@ -140,12 +141,7 @@ export default {
   },
   watch: {
     'customer.tel_num' (value) {
-      const validatePhone = new RegExp('(84|0[3|5|7|8|9])+([0-9]{8})\\b');
-      if (value && !validatePhone.test(value)) {
-        this.errorsPhone = 'Số điện thoại không đúng định dạng'
-      } else {
-        this.errorsPhone = null
-      }
+      if (this.errorsPhone) this.errorsPhone = null;
     },
     'customer.email' (value) {
       if (this.errorsEmail) this.errorsEmail = null;
@@ -164,14 +160,34 @@ export default {
                 if (response.statusCode) {
                   this.$emit('loadData', response.data);
                   this.$emit('close');
-                  await Toast.show('success', 'Thêm thành công');
+                  await Toast.show('success', i18n.t('notification.add_success'));
                 }
               } catch (e) {
-                if (e.status && e.status === 422) {
+                if (e.status && e.status === Number(i18n.t('STATUS_CODE.HTTP_UNPROCESSABLE_ENTITY'))) {
                   const errors = e.data.messages;
                   this.errorsEmail = errors.email;
+                  if (errors.permission) {
+                    await Toast.show('error', errors.permission);
+                  }
                 }
               }
+          } else {
+            try {
+              const response = await ServiceCustomer.updateCustomer(this.customer)
+              if (response.statusCode) {
+                this.$emit('loadData');
+                await this.$emit('close');
+                await Toast.show('success', i18n.t('notification.add_success'));
+              }
+            } catch (e) {
+              if (e.status && e.status === Number(i18n.t('STATUS_CODE.HTTP_UNPROCESSABLE_ENTITY'))) {
+                const errors = e.data.messages;
+                this.errorsEmail = errors.email;
+                if (errors.detail) {
+                  await Toast.show('error', errors.detail);
+                }
+              }
+            }
           }
       }
     }

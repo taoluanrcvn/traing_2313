@@ -14,7 +14,7 @@ class CustomerRepository extends BaseRepository implements ICustomerRepository
     }
 
     public function getAll($perPage) {
-        return $this->model->where('is_active' , 1)->paginate($perPage);
+        return $this->model->where('is_active', 1)->paginate($perPage);
     }
 
     public function getCustomers($perPage, $searchActive, $searchName, $searchEmail, $searchAddress)
@@ -37,12 +37,12 @@ class CustomerRepository extends BaseRepository implements ICustomerRepository
         return $customers;
     }
 
-    public function existEmailCustomer($email) {
-        return $this->model->where('email', $email)->first();
-    }
-
     public function addCustomer($customer) {
         return $this->model->create($customer);
+    }
+
+    public function updateCustomer($customer_id , $data) {
+        return $this->model->where("customer_id", $customer_id)->update($data);
     }
 
 }

@@ -16,7 +16,7 @@ interface  ICustomerRepository extends IBaseRepository
      */
     public function getAll($perPage);
 
-    public function existEmailCustomer($email);
-
     public function addCustomer($customer);
+
+    public function updateCustomer($customer_id , $data);
 }

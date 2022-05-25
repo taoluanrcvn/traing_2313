@@ -113,7 +113,7 @@
                     <v-icon left>
                         mdi-account-plus
                     </v-icon>
-                    Thêm khách hàng
+                    {{ $t("customer.btn.add") }}
                 </v-btn>
                 <v-btn
                         depressed
@@ -125,7 +125,7 @@
                     <v-icon left>
                         mdi-file-import
                     </v-icon>
-                    {{!parsed ? 'Import CSV' : 'Clear File CSV'}}
+                    {{!parsed ? $t("customer.btn.import_csv") : $t("customer.btn.clear_import_csv") }}
 
                     <input
                             ref="uploader"
@@ -139,18 +139,19 @@
                         depressed
                         color="success"
                         class="ml-4 mt-md-0 mt-4"
-                        :disabled="parsed"
+                        :disabled="parsed || isLoading"
                         @click="exportCustomer"
+                        :loading="isLoading"
                 >
                     <v-icon left>
                         mdi-file-export
                     </v-icon>
-                    Export CSV
+                    {{$t("customer.btn.export_csv")}}
                 </v-btn>
         </v-col>
         <v-col cols="12" lg="6" class="mt-4">
             <div class="float-end">
-                <span class="pl-4">Hiện thị tối đa</span>
+                <span class="pl-4">{{$t("paginate.show_max")}}</span>
                 <v-menu
                         rounded
                         offset-y
@@ -191,18 +192,18 @@
                     class="elevation-1 "
                     @page-count="pageCount = $event"
                     :loading="loadingTable"
-                    loading-text="Đang tải...."
+                    loading-text="$t{customer.loading_text}"
             >
                 <template v-slot:item.id="{ item , index }">
                     {{ customerFrom + index}}
                 </template>
                 <template v-slot:item.is_active="{ item }">
-              <span v-if="item.is_active" class="success--text">
-                  Đang hoạt động
-              </span>
+                      <span v-if="item.is_active" class="success--text">
+                          {{$t("status.is_active")}}
+                      </span>
                     <span v-else class="red--text">
-                  Tạm khóa
-              </span>
+                        {{$t("status.lock")}}
+                    </span>
                 </template>
                 <template v-slot:item.act="{ item }" v-if="!parsed">
                     <v-tooltip top>
@@ -217,7 +218,7 @@
                                 <v-icon>mdi-border-color</v-icon>
                             </v-btn>
                         </template>
-                        <span>Sửa</span>
+                        <span>{{$t('customer.btn.edit')}}</span>
                     </v-tooltip>
 
                 </template>
@@ -234,7 +235,7 @@
                                 <v-icon>mdi-account-plus</v-icon>
                             </v-btn>
                         </template>
-                        <span>Thêm khách hàng</span>
+                        <span>{{$t("customer.btn.add")}}</span>
                     </v-tooltip>
                     <v-tooltip top v-else-if="item.is_added">
                         <template v-slot:activator="{ on, attrs }">
@@ -247,20 +248,20 @@
                                 <v-icon>mdi-account-check</v-icon>
                             </v-btn>
                         </template>
-                        <span>Đã thêm khách hàng</span>
+                        <span>{{$t("customer.status.add_success")}}</span>
                     </v-tooltip>
                     <v-tooltip top v-else>
                         <template v-slot:activator="{ on, attrs }">
                             <v-btn
-                                    icon
-                                    color="error"
-                                    v-bind="attrs"
-                                    v-on="on"
+                                icon
+                                color="error"
+                                v-bind="attrs"
+                                v-on="on"
                             >
                                 <v-icon>mdi-account-alert</v-icon>
                             </v-btn>
                         </template>
-                        <span>Dữ liệu không đúng định dạng</span>
+                        <span>{{$t("customer.status.malformed_data")}}</span>
                     </v-tooltip>
 
                 </template>
@@ -280,7 +281,7 @@
             :customerSelected="customerSelected"
             type="add"
             @close="dialogAddCustomer = false"
-            @loadData="addSuccess"
+            @loadData="funcSuccess"
     ></DialogEditAndAddCustomer>
     <DialogEditAndAddCustomer
             v-if="dialogEditCustomer"
@@ -288,5 +289,6 @@
             :customerSelected="customerSelected"
             type="edit"
             @close="dialogEditCustomer = false"
+            @loadData="funcSuccess"
     ></DialogEditAndAddCustomer>
 </v-container>

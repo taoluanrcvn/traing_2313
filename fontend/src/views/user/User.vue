@@ -13,7 +13,6 @@ export default {
     return {
       loadingTable: false,
       loggedIn: false,
-      namePage : 'Products',
       groups: ['Admin', 'Editor', 'Reviewer'],
       statusUser: [{ value: 0 , text : 'Tạm khóa'}, { value: 1 , text : 'Đang hoạt động'}],
       search: {

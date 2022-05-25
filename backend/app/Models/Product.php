@@ -18,4 +18,6 @@ class Product extends Model
         'is_sales',
         'description',
     ];
+    protected $primaryKey = 'product_id';
+
 }

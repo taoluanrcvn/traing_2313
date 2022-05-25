@@ -2,19 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Response\ResponseJson;
 use App\Models\Product;
+use App\Repositories\Interfaces\IProductRepository;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    protected $productRepository;
+
+    public function __construct(IProductRepository $productRepository)
+    {
+        $this->middleware('jwt.verify');
+        $this->productRepository = $productRepository;
+    }
     /**
-     * Display a listing of the resource.
+     * Lấy danh sách khách hàng (tìm kiếm, phần trang)
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $perPage = $request->perPage;
+        $isSearch = $request->isSearch;
+        if (!$isSearch) {
+            $products = $this->productRepository->getAll($perPage);
+        } else {
+            $products = $this->productRepository->getCustomers($perPage, $request->isSale, $request->name, $request->minPrice, $request->maxPrice);
+        }
+        return ResponseJson::success($products);
     }
 
     /**

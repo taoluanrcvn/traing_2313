@@ -7,6 +7,7 @@ import {Toast} from "@/utils/toast";
 import Papa from 'papaparse';
 import {Customer} from "@/utils/class.user";
 import moment from 'moment';
+import i18n from "@/plugins/i18n";
 
 export default {
   components: {Header, DialogEditAndAddCustomer},
@@ -51,7 +52,10 @@ export default {
       customerSelected: new Customer(),
       dialogAddCustomer: false,
       dialogEditCustomer: false,
-      moment: moment
+      moment: moment,
+      params: {},
+      userCurrent: JSON.parse(localStorage.getItem('user')),
+      isLoading: false
     }
   },
   watch: {
@@ -111,7 +115,7 @@ export default {
     async getCustomers() {
       try {
         this.loadingTable = true;
-        const params =  {
+        this.params =  {
           page: this.page,
           perPage: this.itemsPerPage,
           customer_name: this.search.name,
@@ -120,7 +124,7 @@ export default {
           isActive: this.search.isActive,
           isSearch: this.isSearch,
         }
-        const response  = await ServiceCustomer.getCustomers(params);
+        const response  = await ServiceCustomer.getCustomers(this.params);
         if (response && response.statusCode) {
           const customers = response.data;
           this.pageLength = customers.last_page;
@@ -138,6 +142,11 @@ export default {
     },
 
     async searchCustomer() {
+      if(this.parsed) {
+        await Toast.show('warning', 'Không thể tìm kiếm trên file CSV!');
+        return;
+      }
+
       if (this.hasSearch()) {
         this.isSearch = true;
         this.page = 1
@@ -157,10 +166,18 @@ export default {
       }
     },
     showDialogAddCustomer(customer) {
+      if (!this.userCurrent.is_admin) {
+        Toast.show('warning', i18n.t('permission.not'));
+        return;
+      }
       this.customerSelected = customer;
       this.dialogAddCustomer = true;
     },
     showDialogEditCustomer(customer) {
+      if (this.userCurrent.group_role === i18n.t('group_role.reviewer')) {
+        Toast.show('warning', i18n.t('permission.not'));
+        return;
+      }
       this.customerSelected = customer;
       this.dialogEditCustomer = true;
     },
@@ -177,6 +194,7 @@ export default {
       this.fileExport = e.target.files[0]
       this.parseFileImport();
     },
+
     handleFileImport(e) {
       if (this.parsed) {
         this.getCustomers();
@@ -197,7 +215,7 @@ export default {
       Papa.parse( this.fileExport, {
         header: true,
         skipEmptyLines: true,
-        step: function(row) {
+        step: async function(row) {
           let statusRow = true;
           if (row.errors.length === 0) {
             row.data.statusRow = true;
@@ -207,11 +225,36 @@ export default {
           const email = data[1];
           const tel_num = data[2];
           const address = data[3];
-
+          let is_added= 0;
+          const messages_err = [];
           const validateEmail = new RegExp('^\\w+([\\.-]?\\w+)*@\\w+([\\.-]?\\w+)*(\\.\\w{2,3})+$')
           const validatePhone = new RegExp('(84|0[3|5|7|8|9])+([0-9]{8})\\b');
           if (!validatePhone.test(tel_num) || !validateEmail.test(email) || customer_name.length < 5 || address.length === 0) {
             statusRow = false;
+          }
+
+          if (statusRow) {
+            try {
+              const response = await ServiceCustomer.addCustomer({
+                "customer_name" : customer_name,
+                "email" : email,
+                "address" : address,
+                "tel_num" : tel_num,
+                "is_active" : 1,
+              })
+              if (response.statusCode) {
+                is_added = 1
+              }
+            } catch (e) {
+              if (e.status && e.status === Number(i18n.t('STATUS_CODE.HTTP_UNPROCESSABLE_ENTITY'))) {
+                const errors = e.data.messages;
+                if (errors.email) {
+                  // email đã tồn tại
+                  messages_err.push(i18n.t('roles.email'))
+                }
+              }
+            }
+
           }
 
           dataFormat.push({
@@ -221,7 +264,7 @@ export default {
             "tel_num" : tel_num,
             "status_row" : statusRow,
             "is_active" : 1,
-            'is_added' : 0
+            'is_added' : is_added
           })
         },
         complete: function( results ) {
@@ -231,31 +274,52 @@ export default {
       });
     },
 
-    exportCustomer () {
-      const data = this.customers.map(customer => [
-        customer.customer_name,
-        customer.email,
-        customer.tel_num,
-        customer.address
-      ]);
-      const fields = ['Tên khách hàng', 'E-mail', 'TelNum', 'Địa chỉ'];
-      const csv = Papa.unparse({
-        data,
-        fields
-      });
+    async exportCustomer () {
+      try {
+        if (this.userCurrent.group_role === i18n.t('group_role.reviewer')) {
+          await Toast.show('warning', i18n.t('permission.not'));
+          return;
+        }
+        this.isLoading = true;
+        const response  = await ServiceCustomer.getCustomers(this.params);
+        if (response && response.statusCode) {
+          const customers = response.data
+          if (customers.data.length > 0) {
+            const data = customers.data.map(customer => [
+              customer.customer_name,
+              customer.email,
+              customer.tel_num,
+              customer.address
+            ]);
 
-      const blob = new Blob([csv]);
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob, { type: 'text/plain' });
-      const dayNow = this.moment.now();
-      const formatDayNow = this.moment(dayNow).format('DD_MM_YYYY_HH_mm')
-      a.download = `customers_from_${this.customerFrom}_to_${this.customerTo}_date_${formatDayNow}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+            const fields = [i18n.t('field_csv.name'), i18n.t('field_csv.email'), i18n.t('field_csv.phone'), i18n.t('field_csv.address')];
+            const csv = Papa.unparse({
+              data,
+              fields
+            });
+            const blob = new Blob([csv]);
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob, { type: 'text/plain' });
+            const dayNow = this.moment.now();
+            const formatDayNow = this.moment(dayNow).format('DD_MM_YYYY_HH_mm')
+            a.download = `customers_from_${customers.from}_to_${customers.to}_date_${formatDayNow}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            await Toast.show('success', i18n.t('notification.export_success'));
+          } else {
+            await Toast.show('warning', i18n.t('notification.not_record_to_export'));
+          }
+        }
+      } catch (e) {
+        await Toast.show('warning', i18n.t('notification.export_fail'));
+      } finally {
+        this.isLoading = false;
+      }
+
     },
 
-    addSuccess(customerNew) {
+    funcSuccess(customerNew) {
       if (!this.parsed) {
         this.getCustomers()
       } else {

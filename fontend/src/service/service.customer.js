@@ -22,5 +22,20 @@ export const ServiceCustomer = {
         } catch (e) {
             throw e;
         }
-    }
+    },
+
+    async updateCustomer(customer) {
+        try {
+            const body = new FormData();
+            body.append('customer_name', customer.customer_name);
+            body.append('email', customer.email)
+            body.append('tel_num', customer.tel_num)
+            body.append('address', customer.address)
+            body.append('is_active', customer.is_active)
+            const response = await callApi.putRequest(API_CONSTANT.CUSTOMERS  + `${customer.customer_id}` , customer);
+            return response;
+        } catch (e) {
+            throw e;
+        }
+    },
 }

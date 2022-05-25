@@ -6,9 +6,11 @@ use App\Http\Response\ResponseJson;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 
-class CustomerPostRequest extends FormRequest
+class CustomerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -21,23 +23,22 @@ class CustomerPostRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Các rules dùng chung.
      *
      * @return array
      */
     public function rules()
     {
         return [
-            'customer_name' => 'required|min:5|unique:customer,email',
-            'email' => 'required|email',
+            'customer_name' => 'required|min:5',
             'tel_num' => 'required|min:10|numeric',
             'address' => 'required',
             'is_active' => 'required'
-        ];
+        ] + ($this->isMethod('POST') ? $this->store() : $this->update());
     }
 
     /**
-     * Get the error messages for the defined validation rules.
+     * Set thông báo cho mỗi field khi lỗi.
      *
      * @return array
      */
@@ -52,7 +53,7 @@ class CustomerPostRequest extends FormRequest
     }
 
     /**
-     * Get custom attributes for validator errors.
+     * custom tên lại cho attributes.
      *
      * @return array
      */
@@ -67,12 +68,20 @@ class CustomerPostRequest extends FormRequest
         ];
     }
 
-    public function validate($data){
-        return Validator::make($data, $this->rules(), $this->messages(), $this->attributes());
+
+    protected function store()
+    {
+        return ['email' => 'required|email|unique:mst_customer,email'];
     }
 
+    protected function update() {
+        return ['email' => Rule::unique('mst_customer', 'email')->ignore($this->customer_id, 'customer_id')];
+    }
+
+
+
     /**
-     * Handle a failed validation attempt.
+     * trả về đúng format khi các trường không hợp lệ.
      *
      * @param  \Illuminate\Contracts\Validation\Validator $validator
      * @return void

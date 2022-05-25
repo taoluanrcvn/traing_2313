@@ -17,4 +17,6 @@ class Customer extends Model
         'address',
         'is_active'
     ];
+    protected $primaryKey = 'customer_id';
+
 }

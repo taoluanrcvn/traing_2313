@@ -2,8 +2,8 @@
 
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,6 +23,8 @@ Route::group(['middleware' => ['jwt.verify']], function() {
     Route::resources(['user' => UserController::class]);
 
     Route::resources(['customer' => CustomerController::class]);
+
+    Route::resources(['product' => ProductController::class]);
 
     Route::post('/user/lock-or-unlock', [UserController::class, 'lockOrUnlockUser']);
 

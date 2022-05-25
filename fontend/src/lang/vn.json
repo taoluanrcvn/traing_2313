@@ -1,0 +1,87 @@
+{
+  "customer": {
+    "btn": {
+      "add": "Thêm khách hàng",
+      "edit": "Sửa",
+      "export_csv": "Export CSV",
+      "import_csv": "Import CSV",
+      "clear_import_csv": "Clear File CSV"
+    },
+    "status": {
+      "add_success": "Đã thêm khách hàng",
+      "malformed_data": "Dữ liệu không đúng định dạng"
+    },
+    "loading_text": "Đang tải...."
+  },
+  "product": {
+    "btn": {
+      "add": "Thêm sản phẩm"
+    },
+    "label": {
+      "name": "Tên sản phẩm",
+      "deception": "Mô tả",
+      "price": "Giá",
+      "status": "Tình trạng",
+      "action": "Hành động",
+      "price_from": "Giá bán từ",
+      "price_to": "Giá bán đến"
+    },
+    "status": {
+      "sale_off": "Ngừng bán",
+      "sale": "Đang bán"
+    }
+  },
+  "button_util": {
+    "search": "Tìm kiếm",
+    "clear_search": "Xóa tìm kiếm"
+  },
+  "paginate": {
+    "show_max": "Hiển thị tối đa"
+  },
+  "status": {
+    "is_active": "Đang hoạt động",
+    "lock": "Tạm khóa",
+    "pause": "Tạm dừng"
+  },
+  "roles": {
+    "required": "{field} không được để trống",
+    "malformed": "{field} không đúng định dạng",
+    "min_length": "{filed} phải hơn {length} ký tự",
+    "status": {
+      "required": "Chưa chọn trạng thái"
+    },
+    "email" : "E-mail đã tồn tại"
+  },
+  "notification": {
+    "add_success": "Thêm thành công",
+    "update_success": "Cập nhật thành công",
+    "not_record_to_export": "Không có dữ liệu để export",
+    "export_fail": "Export thất bại",
+    "export_success": "Export thành công"
+  },
+  "field" : {
+    "email": "E-mail",
+    "phone": "Số điện thoại",
+    "address": "Địa chỉ",
+    "is_active": "Trạng thái",
+    "name": "Họ tên"
+  },
+  "group_role": {
+    "admin": "Admin",
+    "editor": "Editor",
+    "reviewer": "Reviewer"
+  },
+  "STATUS_CODE": {
+    "HTTP_UNPROCESSABLE_ENTITY": "422",
+    "HTTP_UNAUTHORIZED": "401"
+  },
+  "permission": {
+    "not": "Bạn không có quyền thực hiện tính năng này"
+  },
+  "field_csv": {
+    "email": "E-mail",
+    "phone": "TelNum",
+    "address": "Địa chỉ",
+    "name": "Tên khách hàng"
+  }
+}

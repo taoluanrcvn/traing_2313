@@ -47,8 +47,12 @@ return [
         'is_active' => 'Trạng thái'
     ],
     'validate' => [
-        'required' => ':attribute không được chống',
+        'required' => ':attribute không được trống',
         'min' => ':attribute không được ngắn hơn :min',
         'numeric' => ':attribute phải là số'
+    ],
+    'status_query' => [
+        "update_success" => 'Cập nhật thành công',
+        "update_fail" => 'Cập nhật thất bại',
     ]
 ];

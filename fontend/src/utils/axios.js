@@ -1,11 +1,9 @@
 import axios from 'axios'
 axios.defaults.withCredentials = true;
+axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem("token")}`;
 export const callApi = {
   async postRequest (url, body, isAuth = true) {
     try {
-      if (isAuth) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem("token")}`;
-      }
       const response = await axios.post(url, body)
       return response.data
     } catch (e) {
@@ -15,9 +13,6 @@ export const callApi = {
 
   async getRequest (url, param, isAuth = true) {
     try {
-      if (isAuth) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem("token")}`;
-      }
       const response = await axios.get(url, { params: param})
       return response.data
     } catch (e) {
@@ -31,9 +26,6 @@ export const callApi = {
 
   async deleteRequest(url, param, isAuth = true) {
     try {
-      if (isAuth) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem("token")}`;
-      }
       const response = await axios.delete(url, {params: param})
       return response.data
     } catch (e) {
@@ -43,10 +35,7 @@ export const callApi = {
 
   async putRequest(url, param, isAuth = true) {
     try {
-      if (isAuth) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem("token")}`;
-      }
-      const response = await axios.put(url, {params: param})
+      const response = await axios.put(url, param)
       return response.data
     } catch (e) {
       throw e.response

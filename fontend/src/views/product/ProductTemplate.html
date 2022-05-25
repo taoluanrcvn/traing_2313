@@ -1,0 +1,178 @@
+<v-container fluid >
+    <v-row class="w-100 mb-4">
+        <Header/>
+    </v-row>
+    <v-form>
+        <v-row class="d-flex justify-center mt-4">
+            <v-col
+                    cols="12"
+                    md="4"
+                    sm="4"
+                    lg="2"
+            >
+                <v-text-field
+                        v-model="search.name"
+                        :label="$t('product.label.name')"
+                        dense
+                        outlined
+                        hide-details
+                ></v-text-field>
+            </v-col>
+
+            <v-col
+                    cols="12"
+                    md="4"
+                    sm="4"
+                    lg="2"
+            >
+                <v-select
+                        :items="search.status"
+                        :label="$t('product.label.status')"
+                        dense
+                        outlined
+                        hide-details
+                ></v-select>
+            </v-col>
+            <v-col
+                    cols="12"
+                    md="4"
+                    sm="4"
+                    lg="1"
+            >
+                <v-text-field
+                        v-model="search.minPrice"
+                        :label="$t('product.label.price_from')"
+                        dense
+                        outlined
+                        hide-details
+                ></v-text-field>
+            </v-col>
+            <v-col
+                    cols="12"
+                    md="4"
+                    sm="4"
+                    lg="1"
+            >
+                <v-text-field
+                        v-model="search.maxPrice"
+                        :label="$t('product.label.price_to')"
+                        dense
+                        outlined
+                        hide-details
+                ></v-text-field>
+            </v-col>
+
+            <v-col
+                    md="4"
+                    sm="2"
+                    lg="1"
+                    class="d-flex justify-center align-center"
+            >
+                <v-btn
+                        depressed
+                        color="primary"
+                        @click="searchUser()"
+                >
+                    <v-icon left>
+                        mdi-magnify
+                    </v-icon>
+                    {{$t('button_util.search')}}
+                </v-btn>
+            </v-col>
+
+            <v-col
+                    md="4"
+                    sm="2"
+                    lg="2"
+                    class="d-flex justify-center justify-sm-start align-center"
+            >
+                <v-btn
+                        depressed
+                        color="error"
+                        @click="clearSearch()"
+                >
+                    <v-icon left>
+                        mdi-magnify-minus
+                    </v-icon>
+                    {{$t('button_util.clear_search')}}
+                </v-btn>
+            </v-col>
+        </v-row>
+    </v-form>
+    <v-row class="mt-5">
+        <v-col cols="12">
+            <v-btn
+                    depressed
+                    color="primary"
+                    @click="showDialogAddUser()"
+            >
+                <v-icon left>
+                    mdi-account-plus
+                </v-icon>
+                {{ $t("product.btn.add") }}
+            </v-btn>
+        </v-col>
+        <v-col cols="12">
+            <v-data-table
+                    :headers="headers"
+                    :items="products"
+                    :page.sync="page"
+                    :items-per-page="itemsPerPage"
+                    hide-default-footer
+                    class="elevation-1 "
+                    @page-count="pageCount = $event"
+                    :loading="loadingTable"
+                    :loading-text="$t('customer.loading_text')"
+            >
+                <template v-slot:item.id="{ item , index }">
+                    {{ productFrom + index}}
+                </template>
+                <template v-slot:item.is_active="{ item }">
+                      <span v-if="item.is_active" class="success--text">
+                          {{$t("status.is_active")}}
+                      </span>
+                    <span v-else class="red--text">
+                        {{$t("status.lock")}}
+                    </span>
+                </template>
+                <template v-slot:item.act="{ item }">
+                    <v-tooltip top>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                    icon
+                                    color="primary"
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    @click="showDialogEditProduct(item)"
+                            >
+                                <v-icon>mdi-border-color</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>{{$t('customer.btn.edit')}}</span>
+                    </v-tooltip>
+                    <v-tooltip top>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                    icon
+                                    color="primary"
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    @click="showDialogDeleteCustomer(item)"
+                            >
+                                <v-icon>mdi-border-color</v-icon>
+                            </v-btn>
+                        </template>
+                        <span>{{$t('customer.btn.edit')}}</span>
+                    </v-tooltip>
+                </template>
+            </v-data-table>
+            <div class="text-center pt-2" v-if="totalProduct > itemsPerPage">
+                <span class="overline">Hiển thị từ {{productFrom}} ~ {{productTo}} trong tổng số {{totalCustomer}} người dùng</span>
+                <v-pagination
+                        v-model="page"
+                        :length="pageLength"
+                ></v-pagination>
+            </div>
+        </v-col>
+    </v-row>
+</v-container>

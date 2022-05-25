@@ -157,7 +157,7 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        $credentials = Validator::make( $request->params, [
+        $credentials = Validator::make($request->all(), [
             'email' => 'required|email',
             'group_role' => 'required',
             'is_active' => 'required|integer',
