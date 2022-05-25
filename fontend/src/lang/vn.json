@@ -4,6 +4,7 @@
       "add": "Thêm khách hàng",
       "edit": "Sửa",
       "export_csv": "Export CSV",
+      "export_csv_customer_fail": "Export giá trị lo CSV",
       "import_csv": "Import CSV",
       "clear_import_csv": "Clear File CSV"
     },
@@ -46,7 +47,7 @@
   "roles": {
     "required": "{field} không được để trống",
     "malformed": "{field} không đúng định dạng",
-    "min_length": "{filed} phải hơn {length} ký tự",
+    "min_length": "{field} phải hơn {length} ký tự",
     "status": {
       "required": "Chưa chọn trạng thái"
     },

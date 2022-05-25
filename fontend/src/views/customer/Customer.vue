@@ -8,6 +8,8 @@ import Papa from 'papaparse';
 import {Customer} from "@/utils/class.user";
 import moment from 'moment';
 import i18n from "@/plugins/i18n";
+import Login from "@/views/Login";
+import Swal from "sweetalert2";
 
 export default {
   components: {Header, DialogEditAndAddCustomer},
@@ -55,7 +57,8 @@ export default {
       moment: moment,
       params: {},
       userCurrent: JSON.parse(localStorage.getItem('user')),
-      isLoading: false
+      isLoading: false,
+      customerExportFailValid: []
     }
   },
   watch: {
@@ -106,6 +109,11 @@ export default {
       if (value.includes(' ')) {
         this.search.address = value.replace(/^\s+|\s+$/gm,'')
       }
+    }
+  },
+  computed: {
+    showError(arrError) {
+        return arrError.join(',')
     }
   },
   created() {
@@ -212,10 +220,14 @@ export default {
 
      parseFileImport() {
       const dataFormat = [];
+      const dataExportFailValid = [];
+      this.isSelecting = true;
+      this.loadingTable = true;
       Papa.parse( this.fileExport, {
         header: true,
         skipEmptyLines: true,
-        step: async function(row) {
+        encoding: "utf-8",
+        step: async function (row, parser) {
           let statusRow = true;
           if (row.errors.length === 0) {
             row.data.statusRow = true;
@@ -225,15 +237,28 @@ export default {
           const email = data[1];
           const tel_num = data[2];
           const address = data[3];
-          let is_added= 0;
+          let is_added= false;
           const messages_err = [];
           const validateEmail = new RegExp('^\\w+([\\.-]?\\w+)*@\\w+([\\.-]?\\w+)*(\\.\\w{2,3})+$')
           const validatePhone = new RegExp('(84|0[3|5|7|8|9])+([0-9]{8})\\b');
-          if (!validatePhone.test(tel_num) || !validateEmail.test(email) || customer_name.length < 5 || address.length === 0) {
+          if (!validatePhone.test(tel_num)) {
             statusRow = false;
+            messages_err.push(i18n.t('roles.malformed', { field: i18n.t('field.phone')}))
           }
-
+          if (!validateEmail.test(email)) {
+            statusRow = false;
+            messages_err.push(i18n.t('roles.malformed', { field: i18n.t('field.email')}))
+          }
+          if (customer_name.length < 5) {
+            statusRow = false;
+            messages_err.push(i18n.t('roles.min_length', { field: i18n.t('field.name'), length: 5}))
+          }
+          if (!address || address === '') {
+            statusRow = false;
+            messages_err.push(i18n.t('roles.min_length', { field: i18n.t('field.address'), length: 5}))
+          }
           if (statusRow) {
+            parser.pause();
             try {
               const response = await ServiceCustomer.addCustomer({
                 "customer_name" : customer_name,
@@ -243,18 +268,27 @@ export default {
                 "is_active" : 1,
               })
               if (response.statusCode) {
-                is_added = 1
+                is_added = true
               }
             } catch (e) {
               if (e.status && e.status === Number(i18n.t('STATUS_CODE.HTTP_UNPROCESSABLE_ENTITY'))) {
                 const errors = e.data.messages;
                 if (errors.email) {
-                  // email đã tồn tại
                   messages_err.push(i18n.t('roles.email'))
                 }
               }
             }
-
+            finally {
+              parser.resume();
+            }
+          }
+          if (!is_added) {
+            dataExportFailValid.push({
+              "customer_name" : customer_name,
+              "email" : email,
+              "address" : address,
+              "tel_num" : tel_num
+            })
           }
 
           dataFormat.push({
@@ -264,17 +298,43 @@ export default {
             "tel_num" : tel_num,
             "status_row" : statusRow,
             "is_active" : 1,
-            'is_added' : is_added
+            'is_added' : is_added,
+            'messages_fail': messages_err
           })
         },
-        complete: function( results ) {
+        complete: function ( results ) {
           this.customers = dataFormat;
           this.parsed = true;
+          this.loadingTable = false;
+          this.isSelecting = false;
+          if (dataExportFailValid.length > 0) {
+            this.customerExportFailValid = dataExportFailValid;
+            Swal.fire({
+              title: 'Có vài dữ liệu bị lỗi?',
+              html: 'Khi lưu lại những dữ liệu bị lỗi sẽ được lưu ra một file csv khác',
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#3085d6',
+              cancelButtonColor: '#d33',
+              confirmButtonText: 'Lưu',
+              cancelButtonText: 'Xóa'
+            }).then(async (result) => {
+              if (result.isConfirmed) {
+                console.log(this.customerExportFailValid)
+                this.funcExportFileCustomer(this.customerExportFailValid, 'fail_customer')
+              }
+            })
+          }
+
         }.bind(this)
       });
     },
 
     async exportCustomer () {
+      if (this.parsed) {
+        this.funcExportFileCustomer(this.customerExportFailValid, 'fail_customer')
+        return;
+      }
       try {
         if (this.userCurrent.group_role === i18n.t('group_role.reviewer')) {
           await Toast.show('warning', i18n.t('permission.not'));
@@ -285,28 +345,7 @@ export default {
         if (response && response.statusCode) {
           const customers = response.data
           if (customers.data.length > 0) {
-            const data = customers.data.map(customer => [
-              customer.customer_name,
-              customer.email,
-              customer.tel_num,
-              customer.address
-            ]);
-
-            const fields = [i18n.t('field_csv.name'), i18n.t('field_csv.email'), i18n.t('field_csv.phone'), i18n.t('field_csv.address')];
-            const csv = Papa.unparse({
-              data,
-              fields
-            });
-            const blob = new Blob([csv]);
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob, { type: 'text/plain' });
-            const dayNow = this.moment.now();
-            const formatDayNow = this.moment(dayNow).format('DD_MM_YYYY_HH_mm')
-            a.download = `customers_from_${customers.from}_to_${customers.to}_date_${formatDayNow}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            await Toast.show('success', i18n.t('notification.export_success'));
+            this.funcExportFileCustomer(customers.data, `customer_from_${customers.from}_to_${customers.to}`)
           } else {
             await Toast.show('warning', i18n.t('notification.not_record_to_export'));
           }
@@ -326,6 +365,30 @@ export default {
         const indexUserNew = this.customers.findIndex(customer => customer.email === customerNew.email)
         if (indexUserNew !== -1) this.customers[indexUserNew].is_added = 1;
       }
+    },
+
+    funcExportFileCustomer(customersExport, fileName) {
+      const data = customersExport.map(customer => [
+        customer.customer_name,
+        customer.email,
+        customer.tel_num,
+        customer.address
+      ]);
+      const fields = [i18n.t('field_csv.name'), i18n.t('field_csv.email'), i18n.t('field_csv.phone'), i18n.t('field_csv.address')];
+      const csv = Papa.unparse({
+        data,
+        fields
+      });
+      const blob = new Blob([csv]);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob, { type: 'text/plain' });
+      const dayNow = this.moment.now();
+      const formatDayNow = this.moment(dayNow).format('DD_MM_YYYY_HH_mm')
+      a.download = `${fileName}_date_${formatDayNow}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      Toast.show('success', i18n.t('notification.export_success'));
     }
 
   }

@@ -137,11 +137,11 @@
                 </v-btn>
                 <v-btn
                         depressed
-                        color="success"
+                        :color="!parsed ? 'success' : 'error'"
                         class="ml-4 mt-md-0 mt-4"
-                        :disabled="parsed || isLoading"
                         @click="exportCustomer"
                         :loading="isLoading"
+                        :disabled="isSelecting"
                 >
                     <v-icon left>
                         mdi-file-export
@@ -223,21 +223,21 @@
 
                 </template>
                 <template v-slot:item.act="{ item }" v-else>
-                    <v-tooltip top v-if="item.status_row && !item.is_added">
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn
-                                    icon
-                                    color="primary"
-                                    v-bind="attrs"
-                                    v-on="on"
-                                    @click="showDialogAddCustomer(item)"
-                            >
-                                <v-icon>mdi-account-plus</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>{{$t("customer.btn.add")}}</span>
-                    </v-tooltip>
-                    <v-tooltip top v-else-if="item.is_added">
+<!--                    <v-tooltip top v-if="item.status_row && !item.is_added">-->
+<!--                        <template v-slot:activator="{ on, attrs }">-->
+<!--                            <v-btn-->
+<!--                                    icon-->
+<!--                                    color="primary"-->
+<!--                                    v-bind="attrs"-->
+<!--                                    v-on="on"-->
+<!--                                    @click="showDialogAddCustomer(item)"-->
+<!--                            >-->
+<!--                                <v-icon>mdi-account-plus</v-icon>-->
+<!--                            </v-btn>-->
+<!--                        </template>-->
+<!--                        <span>{{$t("customer.btn.add")}}</span>-->
+<!--                    </v-tooltip>-->
+                    <v-tooltip top v-if="item.is_added && item.messages_fail.length === 0">
                         <template v-slot:activator="{ on, attrs }">
                             <v-btn
                                     icon
@@ -261,7 +261,7 @@
                                 <v-icon>mdi-account-alert</v-icon>
                             </v-btn>
                         </template>
-                        <span>{{$t("customer.status.malformed_data")}}</span>
+                        <span>{{item.messages_fail.join(', ')}}</span>
                     </v-tooltip>
 
                 </template>
