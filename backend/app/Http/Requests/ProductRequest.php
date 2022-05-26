@@ -6,9 +6,11 @@ use App\Http\Response\ResponseJson;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 
-class CustomerAddRequest extends FormRequest
+class ProductRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -28,16 +30,17 @@ class CustomerAddRequest extends FormRequest
     public function rules()
     {
         return [
-            'customer_name' => 'required|min:5',
-            'email' => 'required|email',
-            'tel_num' => 'required|min:10|numeric',
-            'address' => 'required',
-            'is_active' => 'required'
+            'product_name' => 'required|min:5|max:255',
+            'product_price' => 'required|min:1|numeric',
+            'is_sales' => 'required',
+            'inventory' => 'required|min:0|numeric',
+            'product_image' => 'required',
+            'description' => 'nullable'
         ];
     }
 
     /**
-     * Get the error messages for the defined validation rules.
+     * Set thông báo cho mỗi field khi lỗi.
      *
      * @return array
      */
@@ -46,32 +49,31 @@ class CustomerAddRequest extends FormRequest
         return [
             'required' => trans('messages.validate.required'),
             'numeric' => trans('messages.validate.numeric'),
-            'min' => trans('messages.validate.min')
+            'min' => trans('messages.validate.min'),
+            'max' => trans('messages.validate.max'),
+            'mimes' => trans('messages.validate.mimes'),
         ];
     }
 
     /**
-     * Get custom attributes for validator errors.
+     * custom tên lại cho attributes.
      *
      * @return array
      */
     public function attributes()
     {
         return [
-            'customer_name' => trans('messages.attributes.customer_name'),
-            'email' => trans('messages.attributes.email'),
-            'tel_num' => trans('messages.attributes.tel_num'),
-            'address' => trans('messages.attributes.address'),
-            'is_active' => trans('messages.attributes.is_active'),
+            'product_name' => trans('messages.attributes.product_name'),
+            'product_price' => trans('messages.attributes.product_price'),
+            'is_sales' => trans('messages.attributes.is_sales'),
+            'inventory' => trans('messages.attributes.inventory'),
+            'product_image' => trans('messages.attributes.product_image'),
+            'description'=> trans('messages.attributes.description'),
         ];
     }
 
-    public function validate($data){
-        return Validator::make($data, $this->rules(), $this->messages(), $this->attributes());
-    }
-
     /**
-     * Handle a failed validation attempt.
+     * trả về đúng format khi các trường không hợp lệ.
      *
      * @param  \Illuminate\Contracts\Validation\Validator $validator
      * @return void
@@ -82,7 +84,7 @@ class CustomerAddRequest extends FormRequest
     {
         $errors = (new ValidationException($validator))->errors();
         throw new HttpResponseException(
-             ResponseJson::error($errors)
+            ResponseJson::error($errors)
         );
     }
 }

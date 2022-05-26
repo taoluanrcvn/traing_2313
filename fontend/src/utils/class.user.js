@@ -24,4 +24,14 @@ export class Customer {
     is_active = 0 | 1;
     address = null;
 }
+
+export class Product {
+    product_id = null;
+    product_name = null;
+    product_image = null;
+    product_price = null;
+    is_sales = null;
+    inventory = null;
+    description =null;
+}
 // export default {user , Role};

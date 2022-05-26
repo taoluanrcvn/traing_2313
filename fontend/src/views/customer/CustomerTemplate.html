@@ -192,7 +192,7 @@
                     class="elevation-1 "
                     @page-count="pageCount = $event"
                     :loading="loadingTable"
-                    loading-text="$t{customer.loading_text}"
+                    :loading-text="$t('customer.loading_text')"
             >
                 <template v-slot:item.id="{ item , index }">
                     {{ customerFrom + index}}

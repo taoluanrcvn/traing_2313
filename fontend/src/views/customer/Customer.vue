@@ -317,7 +317,7 @@ export default {
               confirmButtonColor: '#3085d6',
               cancelButtonColor: '#d33',
               confirmButtonText: 'Lưu',
-              cancelButtonText: 'Xóa'
+              cancelButtonText: 'Không'
             }).then(async (result) => {
               if (result.isConfirmed) {
                 console.log(this.customerExportFailValid)

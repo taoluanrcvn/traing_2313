@@ -2,7 +2,10 @@
     <v-row class="w-100 mb-4">
         <Header/>
     </v-row>
-    <v-form>
+    <v-form
+            ref="form"
+            v-model="validFormSearch"
+            lazy-validation>
         <v-row class="d-flex justify-center mt-4">
             <v-col
                     cols="12"
@@ -26,7 +29,8 @@
                     lg="2"
             >
                 <v-select
-                        :items="search.status"
+                        :items="statusProducts"
+                        v-model="search.isSale"
                         :label="$t('product.label.status')"
                         dense
                         outlined
@@ -42,9 +46,12 @@
                 <v-text-field
                         v-model="search.minPrice"
                         :label="$t('product.label.price_from')"
+                        type="number"
+                        :rules="minPriceRules"
                         dense
                         outlined
-                        hide-details
+                        prefix="$"
+                        :hide-details="validFormSearch"
                 ></v-text-field>
             </v-col>
             <v-col
@@ -56,9 +63,12 @@
                 <v-text-field
                         v-model="search.maxPrice"
                         :label="$t('product.label.price_to')"
+                        type="number"
+                        :rules="maxPriceRules"
                         dense
                         outlined
-                        hide-details
+                        prefix="$"
+                        :hide-details="validFormSearch"
                 ></v-text-field>
             </v-col>
 
@@ -66,12 +76,13 @@
                     md="4"
                     sm="2"
                     lg="1"
-                    class="d-flex justify-center align-center"
+                    class="d-flex justify-center"
             >
                 <v-btn
                         depressed
                         color="primary"
-                        @click="searchUser()"
+                        @click="searchProduct()"
+                        :disabled="!validFormSearch"
                 >
                     <v-icon left>
                         mdi-magnify
@@ -84,7 +95,7 @@
                     md="4"
                     sm="2"
                     lg="2"
-                    class="d-flex justify-center justify-sm-start align-center"
+                    class="d-flex justify-center justify-sm-start"
             >
                 <v-btn
                         depressed
@@ -100,17 +111,48 @@
         </v-row>
     </v-form>
     <v-row class="mt-5">
-        <v-col cols="12">
+        <v-col cols="12" lg="6">
             <v-btn
                     depressed
                     color="primary"
-                    @click="showDialogAddUser()"
+                    @click="showDialogAddProduct()"
             >
                 <v-icon left>
                     mdi-account-plus
                 </v-icon>
                 {{ $t("product.btn.add") }}
             </v-btn>
+        </v-col>
+        <v-col cols="12" lg="6" class="mt-4">
+            <div class="float-end">
+                <span class="pl-4">{{$t("paginate.show_max")}}</span>
+                <v-menu
+                        rounded
+                        offset-y
+                >
+                    <template v-slot:activator="{ attrs, on }">
+                        <v-btn
+                                color="primary"
+                                class="black--textt ml-3 elevation-0"
+                                v-bind="attrs"
+                                v-on="on"
+                                small
+                        >
+                            {{ itemsPerPage }}
+                        </v-btn>
+                    </template>
+
+                    <v-list>
+                        <v-list-item
+                                v-for="item in perPages"
+                                :key="item"
+                                link
+                        >
+                            <v-list-item-title v-text="item" @click="itemsPerPage = item"></v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+            </div>
         </v-col>
         <v-col cols="12">
             <v-data-table
@@ -124,17 +166,27 @@
                     :loading="loadingTable"
                     :loading-text="$t('customer.loading_text')"
             >
+
                 <template v-slot:item.id="{ item , index }">
                     {{ productFrom + index}}
                 </template>
-                <template v-slot:item.is_active="{ item }">
-                      <span v-if="item.is_active" class="success--text">
-                          {{$t("status.is_active")}}
+
+                <template v-slot:item.product_price="{ item , index }">
+                    {{ $n(item.product_price, 'currency', 'en-US') }}
+                </template>
+
+                <template v-slot:item.is_sales="{ item }">
+                      <span v-if="item.is_sales === 1 && item.inventory > 0" class="success--text">
+                          {{$t("product.status.sale")}}
                       </span>
-                    <span v-else class="red--text">
-                        {{$t("status.lock")}}
+                    <span v-else-if="item.is_sales === 0 && item.inventory > 0" class="red--text">
+                        {{$t("product.status.not_sale")}}
+                    </span>
+                    <span v-else class="warning:--text">
+                        {{$t("product.status.sale_out")}}
                     </span>
                 </template>
+
                 <template v-slot:item.act="{ item }">
                     <v-tooltip top>
                         <template v-slot:activator="{ on, attrs }">
@@ -154,20 +206,20 @@
                         <template v-slot:activator="{ on, attrs }">
                             <v-btn
                                     icon
-                                    color="primary"
+                                    color="error"
                                     v-bind="attrs"
                                     v-on="on"
-                                    @click="showDialogDeleteCustomer(item)"
+                                    @click="showConfirmDeleteProduct(item)"
                             >
-                                <v-icon>mdi-border-color</v-icon>
+                                <v-icon>mdi-delete</v-icon>
                             </v-btn>
                         </template>
-                        <span>{{$t('customer.btn.edit')}}</span>
+                        <span>{{$t('product.btn.delete')}}</span>
                     </v-tooltip>
                 </template>
             </v-data-table>
             <div class="text-center pt-2" v-if="totalProduct > itemsPerPage">
-                <span class="overline">Hiển thị từ {{productFrom}} ~ {{productTo}} trong tổng số {{totalCustomer}} người dùng</span>
+                <span class="overline">{{$t('paginate.show_quantity', { from: productFrom, to: productTo, total: totalProduct, table: $t('product.text') }) }}</span>
                 <v-pagination
                         v-model="page"
                         :length="pageLength"
@@ -175,4 +227,26 @@
             </div>
         </v-col>
     </v-row>
+    <DialogEditAndAddProduct
+        v-if="dialogEditProduct"
+        :dialog="dialogEditProduct"
+        :status-products="statusProducts"
+        :product-selected="productSelected"
+        type="edit"
+        :title="$t('title.product_detail')"
+        @close="dialogEditProduct = false"
+        @loadData="funcSuccess"
+    >
+    </DialogEditAndAddProduct>
+    <DialogEditAndAddProduct
+            v-if="dialogAddProduct"
+            :dialog="dialogAddProduct"
+            :status-products="statusProducts"
+            :product-selected="productSelected"
+            type="add"
+            :title="$t('title.add_product')"
+            @close="dialogAddProduct = false"
+            @loadData="funcSuccess"
+    >
+    </DialogEditAndAddProduct>
 </v-container>

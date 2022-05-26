@@ -44,15 +44,25 @@ return [
         'email' => 'Địa chỉ Email',
         'tel_num' => 'Số điện thoại',
         'address' => 'Địa chỉ',
-        'is_active' => 'Trạng thái'
+        'is_active' => 'Trạng thái',
+        'product_name' => 'Tên sản phẩm',
+        'product_price' => 'Giá sản phẩm',
+        'is_sales' => 'Trạng thái',
+        'inventory' => 'Số lượng',
+        'product_image' => 'Hình ảnh',
+        'description' => 'Mô tả'
     ],
     'validate' => [
         'required' => ':attribute không được trống',
         'min' => ':attribute không được ngắn hơn :min',
-        'numeric' => ':attribute phải là số'
+        'numeric' => ':attribute phải là số',
+        'max' => ':attribute không được lớn hơn :max',
+        'image' => 'Hình ảnh chỉ hỗ trợ đuôi .jpeg/jpg/png'
     ],
     'status_query' => [
-        "update_success" => 'Cập nhật thành công',
-        "update_fail" => 'Cập nhật thất bại',
-    ]
+        'update_success' => 'Cập nhật thành công',
+        'update_fail' => 'Cập nhật thất bại',
+        'add_fail' => 'Thêm thất bại'
+    ],
+    'upload_error' => 'Upload thất bại'
 ];

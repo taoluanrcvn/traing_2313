@@ -1,5 +1,6 @@
 {
   "customer": {
+    "text" : "Khách hàng",
     "btn": {
       "add": "Thêm khách hàng",
       "edit": "Sửa",
@@ -15,8 +16,11 @@
     "loading_text": "Đang tải...."
   },
   "product": {
+    "text" : "Sản phẩm",
     "btn": {
-      "add": "Thêm sản phẩm"
+      "add": "Thêm sản phẩm",
+      "edit": "Sửa",
+      "delete": "Xóa"
     },
     "label": {
       "name": "Tên sản phẩm",
@@ -25,11 +29,14 @@
       "status": "Tình trạng",
       "action": "Hành động",
       "price_from": "Giá bán từ",
-      "price_to": "Giá bán đến"
+      "price_to": "Giá bán đến",
+      "inventory": "Số lượng",
+      "image_text": "Chọn hình ảnh"
     },
     "status": {
-      "sale_off": "Ngừng bán",
-      "sale": "Đang bán"
+      "not_sale": "Ngừng bán",
+      "sale": "Đang bán",
+      "sale_out": "Hết hàng"
     }
   },
   "button_util": {
@@ -37,7 +44,8 @@
     "clear_search": "Xóa tìm kiếm"
   },
   "paginate": {
-    "show_max": "Hiển thị tối đa"
+    "show_max": "Hiển thị tối đa",
+    "show_quantity": "Hiển thị từ {from} ~ {to} trong tổng số {total} {table}"
   },
   "status": {
     "is_active": "Đang hoạt động",
@@ -48,6 +56,12 @@
     "required": "{field} không được để trống",
     "malformed": "{field} không đúng định dạng",
     "min_length": "{field} phải hơn {length} ký tự",
+    "price_min": "Giá không được nhỏ hơn 0",
+    "inventory": "Số lượng không được nhỏ hơn 0",
+    "price_min_add": "Giá phải lớn hơn 0",
+    "big_size_image": "Hình ảnh không quá 2MB",
+    "width_height_image": "Kích thước ảnh không quá {width}*{height}",
+    "image_required": "Vui lòng chọn hình ảnh",
     "status": {
       "required": "Chưa chọn trạng thái"
     },
@@ -58,14 +72,19 @@
     "update_success": "Cập nhật thành công",
     "not_record_to_export": "Không có dữ liệu để export",
     "export_fail": "Export thất bại",
-    "export_success": "Export thành công"
+    "export_success": "Export thành công",
+    "export_fail_popup": "",
+    "delete_success": "Xóa thành công",
+    "delete_fail": "Xóa thất bại",
+    "not_enter_search": "Nhập thông tin để tìm kiếm"
   },
   "field" : {
     "email": "E-mail",
     "phone": "Số điện thoại",
     "address": "Địa chỉ",
     "is_active": "Trạng thái",
-    "name": "Họ tên"
+    "name": "Họ tên",
+    "name_product": "Tên sản phẩm"
   },
   "group_role": {
     "admin": "Admin",
@@ -84,5 +103,10 @@
     "phone": "TelNum",
     "address": "Địa chỉ",
     "name": "Tên khách hàng"
+  },
+  "title": {
+    "product_detail": "Chi tiết sản phẩm",
+    "add_product": "Thêm sản phẩm"
+
   }
 }

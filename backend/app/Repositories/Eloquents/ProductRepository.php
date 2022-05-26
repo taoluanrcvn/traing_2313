@@ -20,8 +20,10 @@ class ProductRepository extends BaseRepository implements IProductRepository
     public function getProducts($perPage, $searchSales, $searchName, $searchPriceFrom, $searchPriceTo)
     {
         $products = $this->model->where(function ($query) use ($searchSales) {
-            if (isset($searchActive)) {
-                $query->where('is_sales', $searchActive);
+            if (isset($searchSales) && (int) $searchSales !== 2) {
+                $query->where('is_sales', $searchSales)->where('inventory','>' , 0);
+            } else if (isset($searchSales) && (int) $searchSales === 2) {
+                $query->where('inventory', 0);
             }
         })->where(function ($query) use ($searchName, $searchPriceFrom, $searchPriceTo) {
             if ($searchName) {
@@ -42,5 +44,13 @@ class ProductRepository extends BaseRepository implements IProductRepository
 
     public function deleteProduct($product_id) {
         return $this->model->where('product_id', $product_id)->delete();
+    }
+
+    public function addProduct($product) {
+        return $this->model->create($product);
+    }
+
+    public function getProductIdLast() {
+        return $this->model->latest('product_id')->first();
     }
 }

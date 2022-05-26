@@ -194,6 +194,9 @@ export default {
         const response = await ServiceUser.deleteUser({idUserDelete: this.userSelected.id});
         if (response.statusCode) {
           await this.getListUser();
+          if (this.users.length === 0 && this.page > 1) {
+            this.page--
+          }
           await Toast.show('success', 'Đã xóa thành công!')
           return;
         }

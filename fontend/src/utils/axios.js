@@ -2,7 +2,7 @@ import axios from 'axios'
 axios.defaults.withCredentials = true;
 axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem("token")}`;
 export const callApi = {
-  async postRequest (url, body, isAuth = true) {
+  async postRequest (url, body) {
     try {
       const response = await axios.post(url, body)
       return response.data
@@ -11,7 +11,7 @@ export const callApi = {
     }
   },
 
-  async getRequest (url, param, isAuth = true) {
+  async getRequest (url, param) {
     try {
       const response = await axios.get(url, { params: param})
       return response.data
@@ -24,7 +24,7 @@ export const callApi = {
     }
   },
 
-  async deleteRequest(url, param, isAuth = true) {
+  async deleteRequest(url, param) {
     try {
       const response = await axios.delete(url, {params: param})
       return response.data
@@ -33,7 +33,7 @@ export const callApi = {
     }
   },
 
-  async putRequest(url, param, isAuth = true) {
+  async putRequest(url, param) {
     try {
       const response = await axios.put(url, param)
       return response.data

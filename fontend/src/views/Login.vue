@@ -94,7 +94,7 @@ export default {
 
         }
     },
-  created() {
+  mounted() {
     const email = localStorage.getItem('email');
     const pws = localStorage.getItem('pws')
     if (email && pws) {
