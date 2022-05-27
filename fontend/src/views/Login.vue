@@ -5,14 +5,16 @@
                 <v-col lg="4" md="12">
                     <v-card elevation="4" light tag="section">
                         <v-card-title>
-                            <v-layout align-center justify-space-between>
-                                <h3 class="headline">
-                                    Login
-                                </h3>
-                                <v-flex>
-                                    <v-img :alt="platformName"  class="ml-3 float-right" contain width="400" height="82px" position="center right" src="../assets/logo_rivercrane.png"></v-img>
-                                </v-flex>
-                            </v-layout>
+                            <v-col cols="4">
+                              <h3 class="headline">
+                                Login
+                              </h3>
+                            </v-col>
+                          <v-col cols="8">
+                            <v-flex>
+                              <v-img :alt="platformName"  class="ml-3 float-right" contain width="400" height="82px" position="center right" src="../assets/logo_rivercrane.png"></v-img>
+                            </v-flex>
+                          </v-col>
                         </v-card-title>
                         <v-divider></v-divider>
                         <v-card-text>
@@ -122,6 +124,7 @@ export default {
                       this.$router.push('users')
                     }
                 } catch (e) {
+                  console.log(e)
                   if (e.status && e.status === 422) {
                     const errors = e.data.messages;
                     if (errors.password) {
@@ -130,6 +133,8 @@ export default {
                     if (errors.email) {
                       this.errorsEmail = errors.email;
                     }
+                    console.log(this.errorsEmail)
+                    console.log(this.errorsPassword)
                     if (errors.other) {
                       await Toast.show('error', errors.other);
                     }

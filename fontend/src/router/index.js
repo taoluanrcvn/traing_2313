@@ -5,7 +5,8 @@ import Login from '../views/Login'
 import Customer from '../views/customer/Customer'
 import Product from '../views/product/Product'
 import User from '../views/user/User'
-import {ServiceUser} from "@/service/service.user";
+import {callApi} from "@/utils/axios";
+import {API_CONSTANT} from "@/utils/api.constains";
 Vue.use(VueRouter)
 
 const routes = [
@@ -17,6 +18,7 @@ const routes = [
   {
     path: '/login',
     component: Login,
+    name: 'login',
     beforeEnter: (to, from, next) => {
       if (from.path === '/') {
         guard(to, from, next)
@@ -54,8 +56,8 @@ const guard = function (to, from, next) {
     }
     next('login')
   }
-  const user = JSON.parse(localStorage.getItem('user'))
-  ServiceUser.isAuthenticated(user)
+  const token = localStorage.getItem("token")
+  callApi.verifyToken(API_CONSTANT.VERIFY_TOKEN, null, token)
       .then((response) => {
           if (response.statusCode) {
             localStorage.setItem('user', JSON.stringify(response.data))

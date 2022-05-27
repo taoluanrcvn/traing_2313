@@ -266,7 +266,7 @@
 
                 </template>
             </v-data-table>
-            <div class="text-center pt-2" v-if="totalCustomer > itemsPerPage">
+            <div class="text-center pt-2" v-if="totalCustomer > itemsPerPage && customers.length > 0">
                 <span class="overline">Hiển thị từ {{customerFrom}} ~ {{customerTo}} trong tổng số {{totalCustomer}} người dùng</span>
                 <v-pagination
                         v-model="page"

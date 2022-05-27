@@ -6,12 +6,12 @@ use App\Http\Requests\ProductRequest;
 use App\Http\Response\ResponseJson;
 use App\Models\Product;
 use App\Repositories\Interfaces\IProductRepository;
+use Illuminate\Http\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use mysql_xdevapi\Exception;
 use Illuminate\Support\Facades\Auth;
-
 class ProductController extends Controller
 {
     protected $productRepository;
@@ -39,16 +39,6 @@ class ProductController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Thêm sản phẩm mới
      *
      * @param  \Illuminate\Http\ProductRequest  $request
@@ -66,19 +56,7 @@ class ProductController extends Controller
             return ResponseJson::error(["detail" => trans('messages.validate.image')]);
         }
 
-        $replace = substr($image_64, 0, strpos($image_64, ',')+1);
-
-        $image = str_replace($replace, '', $image_64);
-
-        $image = str_replace(' ', '+', $image);
-
-        $imageName = 'images/' .uniqid().'.'.$extension;
-
-        $isUpLoad = Storage::disk('public')->put($imageName, base64_decode($image));
-
-        if (!$isUpLoad) {
-            return ResponseJson::error(["detail" => trans('messages.upload_error')]);
-        }
+        $imageName = $this->uploadImage($image_64, $extension);
 
         $validated["product_image"] = $imageName;
 
@@ -106,46 +84,57 @@ class ProductController extends Controller
         return $firstCharacter . $zero_string . $nextNumber;
     }
 
-    protected function isImage($base64) {
-        $img = imagecreatefromstring(base64_decode($base64));
-        if (!$img) {
-            return false;
+    protected function uploadImage($image_64, $extension) {
+        $replace = substr($image_64, 0, strpos($image_64, ',')+1);
+
+        $image = str_replace($replace, '', $image_64);
+
+        $image = str_replace(' ', '+', $image);
+
+        $imageName = 'images/' .uniqid().'.'.$extension;
+
+        $isUpLoad = Storage::disk('public')->put($imageName, base64_decode($image));
+        if (!$isUpLoad) {
+            return ResponseJson::error(["detail" => trans('messages.upload_error')]);
         }
-
-        imagepng($img, 'tmp.png');
-        $info = getimagesize('tmp.png');
-
-        unlink('tmp.png');
-
-        if ($info[0] > 0 && $info[1] > 0 && $info['mime']) {
-            return true;
-        }
-
-        return false;
+        return $imageName;
     }
-
-
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Product $product)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Cập nhật product.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Product $product)
+    public function update(ProductRequest $request, Product $product)
     {
-        //
+        $validated = $request->validated();
+        $isUpload = $validated["is_upload"];
+        if ($isUpload) {
+            $image_64 = $validated["product_image"];
+            $extension = explode('/', explode(':', substr($image_64, 0, strpos($image_64, ';')))[1])[1];   // .jpg .png .pdf
+
+            $type_support = ['jpeg', 'png', 'jpg'];
+            if (!in_array($extension, $type_support)) {
+                return ResponseJson::error(["detail" => trans('messages.validate.image')]);
+            }
+
+            $imageName = $this->uploadImage($image_64, $extension);
+            $validated["product_image"] = $imageName;
+        }
+
+        if ($validated["inventory"] == 0) {
+            $validated["is_sales"] = 0;
+        }
+        unset($validated["is_upload"]);
+        $isUpdate = $this->productRepository->updateProduct($product->product_id, $validated);
+        if ($isUpdate) {
+            if ($isUpload) {
+                unlink(storage_path('app/public/'. $product->product_image));
+            }
+            return ResponseJson::success();
+        }
+        return ResponseJson::error(['detail' => trans('messages.status_query.add_fail')]);
     }
 
     /**

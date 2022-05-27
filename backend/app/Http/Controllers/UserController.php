@@ -21,7 +21,7 @@ class UserController extends Controller
         $perPage = $request->perPage;
         $isSearch = $request->isSearch;
         if (!$isSearch) {
-            $users = User::where('is_delete' , 0)->paginate($perPage);
+            $users = User::where('is_delete' , 0)->orderBy('created_at', 'DESC')->paginate($perPage);
         } else {
             $searchName = $request->name;
             $searchEmail = $request->email;
@@ -43,7 +43,7 @@ class UserController extends Controller
                     if (isset($searchStatus)) {
                         $query->where('is_active', $searchStatus);
                     }
-                })->where('is_delete' , 0)->paginate($perPage);;
+                })->where('is_delete' , 0)->orderBy('created_at', 'DESC')->paginate($perPage);;
         }
         return ResponseJson::success($users);
     }
@@ -115,7 +115,7 @@ class UserController extends Controller
         if (!$user) {
             return ResponseJson::error([ 'detail' => trans('messages.user.not_exist')]);
         }
-        if ($user->group_role === "Admin") {
+        if ($user->group_role === "Admin" && $userCurrent->id !== 1) {
             return ResponseJson::error([ 'detail' => $type === 'lock' ? trans('messages.user.not_permission_lock') : trans('messages.user.not_permission_unlock')]);
         }
         if ($userCurrent->group_role !== 'Admin') {
@@ -204,5 +204,9 @@ class UserController extends Controller
     {
         $userCurrent = auth::user();
         return ResponseJson::success($userCurrent);
+    }
+
+    public function showImage($filename) {
+        return ResponseJson::success( asset('storage/images/2ZAew1y0Ws.jpeg'));
     }
 }

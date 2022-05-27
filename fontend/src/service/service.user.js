@@ -1,19 +1,21 @@
 import {callApi} from "@/utils/axios";
 import {API_CONSTANT} from "@/utils/api.constains";
 import {User} from "@/utils/class.user";
+import {Utils} from "@/utils/utils";
 export const ServiceUser = {
     async getUsers(params) {
         try {
            const response = await callApi.getRequest(API_CONSTANT.USERS, params);
            return response
         } catch (e) {
+            await  Utils.checkAuth(e);
             throw e
         }
     },
 
     async isAuthenticated(user) {
         try {
-            const response = await callApi.getRequest(API_CONSTANT.USERS + `${user.id}`);
+            const response = await callApi.postRequest(API_CONSTANT.USERS + `${user.id}`);
             return response
         } catch (e) {
             throw e
@@ -25,6 +27,7 @@ export const ServiceUser = {
             const response = await callApi.putRequest(API_CONSTANT.USERS  + `${user.id}` , user);
             return response;
         } catch (e) {
+            await Utils.checkAuth(e);
             throw e;
         }
     },
@@ -37,6 +40,7 @@ export const ServiceUser = {
             const response = await callApi.postRequest(API_CONSTANT.LOCK_OR_UNBLOCK_USER, body);
             return response;
         } catch (e) {
+            await Utils.checkAuth(e);
             throw e;
         }
     },
@@ -46,6 +50,7 @@ export const ServiceUser = {
         const response = await callApi.deleteRequest(API_CONSTANT.USERS + `${user.idUserDelete}`);
         return response;
         } catch (e) {
+            await Utils.checkAuth(e);
             throw e;
         }
     },
@@ -62,6 +67,7 @@ export const ServiceUser = {
             const response = await callApi.postRequest(API_CONSTANT.USERS, body);
             return response;
         } catch (e) {
+            await Utils.checkAuth(e);
             throw e;
         }
 

@@ -1,5 +1,6 @@
 import {callApi} from "@/utils/axios";
 import {API_CONSTANT} from "@/utils/api.constains";
+import {Utils} from "@/utils/utils";
 
 export const ServiceProduct = {
     async getProducts(params) {
@@ -7,6 +8,7 @@ export const ServiceProduct = {
             const response = await callApi.getRequest(API_CONSTANT.PRODUCTS, params)
             return response;
         } catch (e) {
+            await Utils.checkAuth(e);
             throw e;
         }
     },
@@ -15,6 +17,7 @@ export const ServiceProduct = {
             const response = await callApi.deleteRequest(API_CONSTANT.PRODUCTS + product.product_id);
             return response;
         } catch (e) {
+            await Utils.checkAuth(e);
             throw e;
         }
     },
@@ -31,7 +34,18 @@ export const ServiceProduct = {
             const response = await callApi.postRequest(API_CONSTANT.PRODUCTS, body);
             return response;
         } catch (e) {
-
+            await Utils.checkAuth(e);
+            throw e;
         }
-    }
+    },
+
+    async updateProduct(product) {
+        try {
+            const response = await callApi.putRequest(API_CONSTANT.PRODUCTS  + `${product.product_id}` , product);
+            return response;
+        } catch (e) {
+            await Utils.checkAuth(e);
+            throw e;
+        }
+    },
 }

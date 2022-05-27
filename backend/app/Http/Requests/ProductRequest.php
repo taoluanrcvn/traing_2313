@@ -36,7 +36,7 @@ class ProductRequest extends FormRequest
             'inventory' => 'required|min:0|numeric',
             'product_image' => 'required',
             'description' => 'nullable'
-        ];
+        ]+ ($this->isMethod('POST') ? $this->store() : $this->update());
     }
 
     /**
@@ -52,6 +52,17 @@ class ProductRequest extends FormRequest
             'min' => trans('messages.validate.min'),
             'max' => trans('messages.validate.max'),
             'mimes' => trans('messages.validate.mimes'),
+        ];
+    }
+    protected function store()
+    {
+        return [];
+    }
+
+    protected function update()
+    {
+        return [
+            'is_upload' => 'required|boolean',
         ];
     }
 

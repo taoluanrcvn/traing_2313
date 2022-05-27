@@ -14,7 +14,7 @@ class ProductRepository extends BaseRepository implements IProductRepository
     }
 
     public function getAll($perPage) {
-        return $this->model->paginate($perPage);
+        return $this->model->orderBy('created_at', 'DESC')->paginate($perPage);
     }
 
     public function getProducts($perPage, $searchSales, $searchName, $searchPriceFrom, $searchPriceTo)
@@ -51,6 +51,10 @@ class ProductRepository extends BaseRepository implements IProductRepository
     }
 
     public function getProductIdLast() {
-        return $this->model->latest('product_id')->first();
+        return $this->model->orderBy('created_at', 'DESC')->first();
+    }
+
+    public function updateProduct($product_id, $data) {
+        return $this->model->where("product_id", $product_id)->update($data);
     }
 }

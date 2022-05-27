@@ -55,6 +55,7 @@
                         :items="statusProducts"
                         v-model="product.is_sales"
                         :rules="statusRules"
+                        :error-messages="errorStatus"
                         :label="$t('product.label.status')"
                         dense
                         outlined
@@ -67,12 +68,14 @@
                   >
                     <v-text-field
                         v-model="product.inventory"
+                        :error-messages="errorInventory"
                         :rules="inventoryRules"
                         :label="$t('product.label.inventory')"
                         type="number"
                         dense
                         outlined
                         :hide-details="valid"
+                        :disabled="product.is_sales == 2"
                     ></v-text-field>
                   </v-col>
                 </v-row>
@@ -80,7 +83,7 @@
               <v-col cols="6" class="d-flex flex-column justify-center align-center">
                 <div
                     class="base-image-input"
-                    :style="{ 'background-image': `url(${product.product_image})` }"
+                    :style="{ 'background-image': `url(${!isChooseImage ? urlImage : ''}${product.product_image})` }"
                     @click="chooseImage"
                 >
                     <span
@@ -137,7 +140,6 @@
 import {Product} from "@/utils/class.user";
 import i18n from "@/plugins/i18n";
 import {Toast} from "@/utils/toast";
-import login from "@/views/Login";
 import {ServiceProduct} from "@/service/serve.product";
 
 export default {
@@ -160,12 +162,48 @@ export default {
         v => v !== undefined && v !== null || i18n.t('roles.status.required')
       ],
       inventoryRules: [
-        v => v > 0 || i18n.t('roles.inventory'),
+        v => v >= 0 || i18n.t('roles.inventory'),
       ],
       errorsFile: null,
+      errorStatus: null,
+      errorInventory: null,
+      imageDefault: 'http://localhost:8000/storage/images/production.png',
+      urlImage: 'http://localhost:8000/storage/',
+      isChooseImage: false,
     }
   },
+  mounted() {
+    this.product.is_sales = this.product.inventory === 0 ? 2 : this.product.is_sales
+  },
   watch: {
+    'product.is_sales'(value) {
+        if (this.type === 'add' && value !== 1) {
+          this.errorStatus = i18n.t('status.not_change_status')
+        } else {
+          this.errorStatus = null;
+        }
+
+        if (this.type === 'edit' && value === 2) {
+          this.product.inventory = 0;
+        }
+
+        if ((value === 1 || value === 0) && this.product.inventory === 0) {
+            this.product.inventory = this.productSelected.inventory
+        }
+      },
+    'product.inventory'(value) {
+      if (this.type === 'add' && value <= 0) {
+        this.errorInventory = i18n.t('roles.inventory')
+      } else {
+        this.errorInventory = null
+      }
+      if (value == 0 && this.product.is_sales == 1) {
+        this.errorInventory = i18n.t('roles.inventory')
+      }
+    },
+    'product.product_image'(image) {
+      // console.log(image)
+    }
   },
   methods: {
     closeDialog() {
@@ -178,7 +216,6 @@ export default {
       }
       const isValid = this.$refs.form.validate()
       if (isValid && this.product.product_image) {
-        console.log(1231)
           if (this.type === 'add') {
             try {
               const response = await ServiceProduct.addProduct(this.product)
@@ -194,6 +231,28 @@ export default {
                 }
               }
             }
+          } else {
+            try {
+              if ((this.product.is_sales == 1 || this.product.is_sales == 0) && this.product.inventory <= 0) {
+                this.errorInventory = i18n.t('roles.inventory')
+                return
+              }
+              this.product.is_upload = this.isChooseImage;
+              const response = await ServiceProduct.updateProduct(this.product)
+              if (response.statusCode) {
+                this.$emit('close');
+                this.$emit('loadData', response.data);
+                await Toast.show('success', i18n.t('notification.update_success'));
+              }
+              console.log(response)
+            } catch (e) {
+              if (e.status && e.status === Number(i18n.t('STATUS_CODE.HTTP_UNPROCESSABLE_ENTITY'))) {
+                if (errors.detail) {
+                  await Toast.show('error', errors.detail);
+                }
+              }
+            }
+
           }
       }
     },
@@ -220,9 +279,11 @@ export default {
           img.src = e.target.result;
           img.onload = () => {
             if (img.width > MAX_WIDTH || img.height > MAX_HEIGHT ) {
-              valid_img = false
+              valid_img = false;
+              this.isChooseImage = false;
               Toast.show('warning', i18n.t('roles.width_height_image', { width: MAX_WIDTH, height: MAX_HEIGHT }));
             } else {
+              this.isChooseImage = true;
               this.product.product_image = e.target.result
             }
           }
@@ -231,6 +292,7 @@ export default {
     },
 
     clearFile () {
+      this.isChooseImage = false;
       this.product.product_image = null;
       this.$refs.fileInput.value = null;
     }

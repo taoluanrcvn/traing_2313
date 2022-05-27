@@ -50,7 +50,8 @@
   "status": {
     "is_active": "Đang hoạt động",
     "lock": "Tạm khóa",
-    "pause": "Tạm dừng"
+    "pause": "Tạm dừng",
+    "not_change_status": "Bạn không thể chọn trạng thái này"
   },
   "roles": {
     "required": "{field} không được để trống",

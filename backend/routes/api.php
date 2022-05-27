@@ -4,6 +4,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
+use App\Http\Response\ResponseJson;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::post('/login', [LoginController::class, 'authenticate']);
+Route::post('/verify-token', [LoginController::class, 'verifyToken'])->middleware('jwt.verify');
 
 Route::group(['middleware' => ['jwt.verify']], function() {
 
@@ -29,6 +31,4 @@ Route::group(['middleware' => ['jwt.verify']], function() {
     Route::post('/user/lock-or-unlock', [UserController::class, 'lockOrUnlockUser']);
 
 });
-
-
 

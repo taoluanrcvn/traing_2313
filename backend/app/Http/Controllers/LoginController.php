@@ -67,4 +67,9 @@ class LoginController extends Controller
             'user' => $user
         ]);
     }
+
+    public function verifyToken() {
+        $userCurrent = auth::user();
+        return ResponseJson::success($userCurrent);
+    }
 }

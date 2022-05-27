@@ -13,19 +13,17 @@ export const callApi = {
 
   async getRequest (url, param) {
     try {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem("token")}`;
       const response = await axios.get(url, { params: param})
       return response.data
     } catch (e) {
-      // if (e.response && e.response.status === 401) {
-      //   localStorage.removeItem("token");
-      //   localStorage.removeItem("user");
-      // }
       throw e.response
     }
   },
 
   async deleteRequest(url, param) {
     try {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem("token")}`;
       const response = await axios.delete(url, {params: param})
       return response.data
     } catch (e) {
@@ -40,5 +38,19 @@ export const callApi = {
     } catch (e) {
       throw e.response
     }
-  }
+  },
+
+  async verifyToken (url,  body = {}, token) {
+    try {
+      const response = await axios.post(url, body, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      return response.data
+    } catch (e) {
+      throw e.response
+    }
+  },
+
 }

@@ -14,7 +14,7 @@ class CustomerRepository extends BaseRepository implements ICustomerRepository
     }
 
     public function getAll($perPage) {
-        return $this->model->where('is_active', 1)->paginate($perPage);
+        return $this->model->where('is_active', 1)->orderBy('created_at', 'DESC')->paginate($perPage);
     }
 
     public function getCustomers($perPage, $searchActive, $searchName, $searchEmail, $searchAddress)

@@ -27,7 +27,7 @@ export default {
       itemsPerPage: 10,
       page: 1,
       listStatus: [{ value: 0 , text : 'Tạm dừng' }, { value: 1 , text : 'Đang hoạt động' }],
-      perPages: [10, 15, 20],
+      perPages: [10, 20],
       customers: [],
       headers: [
         {
@@ -150,8 +150,11 @@ export default {
     },
 
     async searchCustomer() {
-      if(this.parsed) {
-        await Toast.show('warning', 'Không thể tìm kiếm trên file CSV!');
+      if(this.parsed && this.hasSearch()) {
+        const filterCustomer = this.customersImport.filter(customer =>
+            this.search.name && customer.customer_name.includes(this.search.name) || this.search.email && customer.email.includes(this.search.email) || this.search.address && customer.address.includes(this.search.address)
+        )
+        this.customers = filterCustomer;
         return;
       }
 
@@ -164,12 +167,17 @@ export default {
       }
     },
     async clearSearch() {
-      if (this.hasSearch()) {
-        this.search.address = '';
-        this.search.isActive = '';
-        this.search.customer_name = '';
-        this.search.email = '';
-        this.isSearch = 0;
+      if (!this.hasSearch()) {
+        return;
+      }
+      this.search.address = '';
+      this.search.isActive = '';
+      this.search.customer_name = '';
+      this.search.email = '';
+      this.isSearch = 0;
+      if(this.parsed) {
+        this.customers = this.customersImport;
+      } else {
         await this.getCustomers();
       }
     },
@@ -204,6 +212,10 @@ export default {
     },
 
     handleFileImport(e) {
+      if (this.userCurrent.group_role === i18n.t('group_role.reviewer')) {
+        Toast.show('warning', i18n.t('permission.not'));
+        return
+      }
       if (this.parsed) {
         this.getCustomers();
         this.parsed = false
@@ -223,6 +235,7 @@ export default {
       const dataExportFailValid = [];
       this.isSelecting = true;
       this.loadingTable = true;
+      this.customers = [];
       Papa.parse( this.fileExport, {
         header: true,
         skipEmptyLines: true,
@@ -304,6 +317,7 @@ export default {
         },
         complete: function ( results ) {
           this.customers = dataFormat;
+          this.customersImport = dataFormat;
           this.parsed = true;
           this.loadingTable = false;
           this.isSelecting = false;

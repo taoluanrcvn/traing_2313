@@ -28,8 +28,14 @@
           text-color="white"
       >
         {{user.group_role}}
-        <v-icon right>
+        <v-icon right v-if="user.is_admin">
           mdi-star
+        </v-icon>
+        <v-icon right v-else-if="user.group_role === $t('group_role.editor')">
+          mdi-account-edit
+        </v-icon>
+        <v-icon right v-else>
+          mdi-eye-outline
         </v-icon>
       </v-chip>
       <template v-if="$vuetify.breakpoint.smAndUp">

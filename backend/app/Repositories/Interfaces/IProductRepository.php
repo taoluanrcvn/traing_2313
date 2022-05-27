@@ -13,4 +13,6 @@ interface IProductRepository extends IBaseRepository
     public function addProduct($product);
 
     public function getProductIdLast();
+
+    public function updateProduct($product_id, $data);
 }
