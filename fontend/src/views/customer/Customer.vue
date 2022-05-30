@@ -39,9 +39,9 @@ export default {
         },
         { text: 'Họ tên', value: 'customer_name', class: "white--text", sortable: false},
         { text: 'Email', value: 'email', class: "white--text", sortable: false},
-        { text: 'Địa chỉ', value: 'address', class: "white--text", sortable: false},
+        { text: 'Địa chỉ', value: 'address', class: "white--text", sortable: false, width: '25%'},
         { text: 'Số điện thoại', value: 'tel_num', class: "white--text", sortable: false},
-        { text: 'Trạng thái', value: 'is_active', class: "white--text", sortable: false},
+        { text: 'Trạng thái', value: 'is_active', class: "white--text", sortable: false, width: '15%'},
         { text: 'Hành động', value: 'act', class: "white--text", sortable: false},
       ],
       loadingTable: false,
@@ -59,8 +59,35 @@ export default {
       params: {},
       userCurrent: JSON.parse(localStorage.getItem('user')),
       isLoading: false,
-      customerExportFailValid: []
+      customerExportFailValid: [],
+      editedIndex: -1,
+      editedItem: new Customer(),
+      defaultItem: {},
+      emailRules: [
+        v => !!v || i18n.t('roles.required', { field: i18n.t('field.email')}),
+        v => /.+@.+\..+/.test(v) || i18n.t('roles.malformed', { field: i18n.t('field.email')}),
+      ],
+      nameRules: [
+        v => !!v || i18n.t('roles.required', { field: i18n.t('field.name')}),
+        v => (v && v.length > 5) || i18n.t('roles.min_length', { field: i18n.t('field.name'), length: 5}),
+      ],
+      addressRules: [
+        v => !!v || i18n.t('roles.required', { field: i18n.t('field.address')}),
+      ],
+      isActiveRules: [
+        v => v !== undefined || i18n.t('roles.required', { field: i18n.t('field.is_active')})
+      ],
+      phoneRules: [
+        v => v !== undefined || i18n.t('roles.required', { field: i18n.t('field.phone')}),
+        v => /^(84|0[3|5|7|8|9])+([0-9]{8})\b$/.test(v) || i18n.t('roles.malformed', { field: i18n.t('field.phone')})
+      ],
+      valid: true,
+      errorsEmail: null
+
     }
+  },
+  mounted() {
+    this.defaultItem = this.customers[0]
   },
   watch: {
     page(value) {
@@ -110,6 +137,9 @@ export default {
       if (value.includes(' ')) {
         this.search.address = value.replace(/^\s+|\s+$/gm,'')
       }
+    },
+    'editedItem.email' (value) {
+      if (this.errorsEmail) this.errorsEmail = null;
     }
   },
   computed: {
@@ -168,9 +198,6 @@ export default {
       }
     },
     async clearSearch() {
-      // if (!this.hasSearch()) {
-      //   return;
-      // }
       this.search.address = '';
       this.search.isActive = '';
       this.search.customer_name = '';
@@ -181,6 +208,7 @@ export default {
       } else {
         await this.getCustomers();
       }
+      this.parsed = false
     },
     showDialogAddCustomer(customer) {
       if (!this.userCurrent.is_admin) {
@@ -404,12 +432,60 @@ export default {
       a.click();
       document.body.removeChild(a);
       Toast.show('success', i18n.t('notification.export_success'));
-    }
+    },
 
+    editItem (item) {
+      this.editedIndex = this.customers.findIndex(customer => customer.customer_id === item.customer_id);
+      this.editedItem = Object.assign({}, item);
+    },
+    async save() {
+      const isValid = this.$refs.form.validate()
+      if (this.editedItem.email.includes(' ')) {
+        this.errorsEmail = i18n.t('roles.malformed', { field: i18n.t('field.email')});
+        return;
+      }
+      if (isValid) {
+        try {
+          const response = await ServiceCustomer.updateCustomer(this.editedItem)
+          if (response.statusCode) {
+            if (this.editedIndex > -1) {
+              Object.assign(this.customers[this.editedIndex], this.editedItem)
+            }
+            this.close()
+            await Toast.show('success', i18n.t('notification.add_success'));
+          }
+        } catch (e) {
+          if (e.status && e.status === Number(i18n.t('STATUS_CODE.HTTP_UNPROCESSABLE_ENTITY'))) {
+            const errors = e.data.messages;
+            this.errorsEmail = errors.email;
+            if (errors.detail) {
+              await Toast.show('error', errors.detail);
+            }
+          }
+        }
+      }
+    },
+    close(){
+      setTimeout(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      }, 300)
+    },
+
+    nameKeydown(e) {
+      if (/^\D*$/.test(e.key) && e.key  !== 'Backspace') {
+        e.preventDefault();
+      }
+    }
   }
 }
 </script>
 
 <style scoped>
-
+.wrap-text-long {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+}
 </style>

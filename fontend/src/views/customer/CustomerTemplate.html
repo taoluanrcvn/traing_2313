@@ -186,7 +186,12 @@
     </v-row>
     <v-row class="mt-5">
         <v-col cols="12">
-            <v-data-table
+            <v-form
+                ref="form"
+                v-model="valid"
+                lazy-validation
+            >
+                <v-data-table
                     :headers="headers"
                     :items="customers"
                     :page.sync="page"
@@ -196,52 +201,117 @@
                     @page-count="pageCount = $event"
                     :loading="loadingTable"
                     :loading-text="$t('customer.loading_text')"
-            >
+                >
+
                 <template v-slot:item.id="{ item , index }">
                     {{ customerFrom + index}}
                 </template>
+                <template v-slot:item.customer_name="{ item }">
+                    <v-text-field
+                        v-model="editedItem.customer_name"
+                        :label="$t('field.name_required')"
+                        placeholder="Nhập họ và tên"
+                        :rules="nameRules"
+                        dense
+                        outlined
+                        required
+                        maxlength="255"
+                        :autofocus="true"
+                        v-if="item.customer_id === editedItem.customer_id && !parsed"
+                        class="mt-6"
+                    ></v-text-field>
+                    <span v-else>{{item.customer_name}}</span>
+                </template>
+                <template v-slot:item.email="{ item }">
+                    <v-text-field
+                        v-model="editedItem.email"
+                        :label="$t('field.email_required')"
+                        :rules="emailRules"
+                        required
+                        placeholder="Nhập E-mail"
+                        :error-messages="errorsEmail"
+                        dense
+                        outlined
+                        class="mt-6"
+                        v-if="item.customer_id === editedItem.customer_id && !parsed"
+                    ></v-text-field>
+                    <span v-else>{{item.email}}</span>
+                </template>
 
-                <template v-slot:item.is_active="{ item }">
-                  <span v-if="item.is_active" class="success--text">
-                      {{$t("status.is_active")}}
-                  </span>
-                    <span v-else class="red--text">
-                        {{$t("status.lock")}}
+                <template v-slot:item.address="{ item }">
+                    <v-text-field
+                        v-model="editedItem.address"
+                        :label="$t('field.address_required')"
+                        :rules="addressRules"
+                        placeholder="Địa chỉ"
+                        outlined
+                        type="text"
+                        dense
+                        required
+                        class="mt-6"
+                        maxlength="120"
+                        v-if="item.customer_id === editedItem.customer_id && !parsed"
+                    ></v-text-field>
+                    <span v-else class="wrap-text-long">
+                        {{item.address}}
                     </span>
                 </template>
 
-                <template v-slot:item.act="{ item }" v-if="!parsed">
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on, attrs }">
-                            <v-btn
-                                    icon
-                                    color="primary"
-                                    v-bind="attrs"
-                                    v-on="on"
-                                    @click="showDialogEditCustomer(item)"
-                            >
-                                <v-icon>mdi-border-color</v-icon>
-                            </v-btn>
-                        </template>
-                        <span>{{$t('customer.btn.edit')}}</span>
-                    </v-tooltip>
+                <template v-slot:item.tel_num="{ item }">
+                    <v-text-field
+                        v-model="editedItem.tel_num"
+                        :label="$t('field.phone_required')"
+                        :rules="phoneRules"
+                        placeholder="Điện thoại"
+                        type="text"
+                        outlined
+                        dense
+                        required
+                        @keydown="nameKeydown($event)"
+                        class="mt-6"
+                        v-if="item.customer_id === editedItem.customer_id && !parsed"
+                    ></v-text-field>
+                    <span v-else>{{item.tel_num}}</span>
+                </template>
 
+                <template v-slot:item.is_active="{ item }">
+                    <v-select
+                            class="mt-6 w-50"
+                            :items="listStatus"
+                            v-model="editedItem.is_active"
+                            :rules="isActiveRules"
+                            :label="$t('field.is_active_required')"
+                            dense
+                            outlined
+                            v-if="item.customer_id === editedItem.customer_id && !parsed"
+                    ></v-select>
+                    <template v-else>
+                        <span v-if="item.is_active" class="success--text">
+                          {{$t("status.is_active")}}
+                      </span>
+                        <span v-else class="red--text">
+                            {{$t("status.lock")}}
+                        </span>
+                    </template>
+                </template>
+
+
+                <template v-slot:item.act="{ item }" v-if="!parsed">
+                    <div v-if="item.customer_id === editedItem.customer_id && !parsed">
+                        <v-icon color="red" class="mr-3" @click="close">
+                            mdi-window-close
+                        </v-icon>
+                        <v-icon color="green"  @click="save">
+                            mdi-content-save
+                        </v-icon>
+                    </div>
+                    <div v-else>
+                        <v-icon color="green" class="mr-3" @click="editItem(item)">
+                            mdi-pencil
+                        </v-icon>
+                    </div>
                 </template>
                 <template v-slot:item.act="{ item }" v-else>
-<!--                    <v-tooltip top v-if="item.status_row && !item.is_added">-->
-<!--                        <template v-slot:activator="{ on, attrs }">-->
-<!--                            <v-btn-->
-<!--                                    icon-->
-<!--                                    color="primary"-->
-<!--                                    v-bind="attrs"-->
-<!--                                    v-on="on"-->
-<!--                                    @click="showDialogAddCustomer(item)"-->
-<!--                            >-->
-<!--                                <v-icon>mdi-account-plus</v-icon>-->
-<!--                            </v-btn>-->
-<!--                        </template>-->
-<!--                        <span>{{$t("customer.btn.add")}}</span>-->
-<!--                    </v-tooltip>-->
                     <v-tooltip top v-if="item.is_added && item.messages_fail.length === 0">
                         <template v-slot:activator="{ on, attrs }">
                             <v-btn
@@ -268,12 +338,77 @@
                         </template>
                         <span>{{item.messages_fail.join(', ')}}</span>
                     </v-tooltip>
-
                 </template>
+
+<!--                -->
+<!--                <template v-slot:item.id="{ item , index }">-->
+<!--                    {{ customerFrom + index}}-->
+<!--                </template>-->
+
+<!--                <template v-slot:item.is_active="{ item }">-->
+<!--                  <span v-if="item.is_active" class="success&#45;&#45;text">-->
+<!--                      {{$t("status.is_active")}}-->
+<!--                  </span>-->
+<!--                    <span v-else class="red&#45;&#45;text">-->
+<!--                        {{$t("status.lock")}}-->
+<!--                    </span>-->
+<!--                </template>-->
+
+<!--                <template v-slot:item.act="{ item }" v-if="!parsed">-->
+<!--                    <v-tooltip top>-->
+<!--                        <template v-slot:activator="{ on, attrs }">-->
+<!--                            <v-btn-->
+<!--                                    icon-->
+<!--                                    color="primary"-->
+<!--                                    v-bind="attrs"-->
+<!--                                    v-on="on"-->
+<!--                                    @click="showDialogEditCustomer(item)"-->
+<!--                            >-->
+<!--                                <v-icon>mdi-border-color</v-icon>-->
+<!--                            </v-btn>-->
+<!--                        </template>-->
+<!--                        <span>{{$t('customer.btn.edit')}}</span>-->
+<!--                    </v-tooltip>-->
+
+<!--                </template>-->
+
+<!--                <template v-slot:item.act="{ item }" v-else>-->
+<!--                    <v-tooltip top v-if="item.is_added && item.messages_fail.length === 0">-->
+<!--                        <template v-slot:activator="{ on, attrs }">-->
+<!--                            <v-btn-->
+<!--                                    icon-->
+<!--                                    color="success"-->
+<!--                                    v-bind="attrs"-->
+<!--                                    v-on="on"-->
+<!--                            >-->
+<!--                                <v-icon>mdi-account-check</v-icon>-->
+<!--                            </v-btn>-->
+<!--                        </template>-->
+<!--                        <span>{{$t("customer.status.add_success")}}</span>-->
+<!--                    </v-tooltip>-->
+<!--                    <v-tooltip top v-else>-->
+<!--                        <template v-slot:activator="{ on, attrs }">-->
+<!--                            <v-btn-->
+<!--                                icon-->
+<!--                                color="error"-->
+<!--                                v-bind="attrs"-->
+<!--                                v-on="on"-->
+<!--                            >-->
+<!--                                <v-icon>mdi-account-alert</v-icon>-->
+<!--                            </v-btn>-->
+<!--                        </template>-->
+<!--                        <span>{{item.messages_fail.join(', ')}}</span>-->
+<!--                    </v-tooltip>-->
+
+<!--                </template>-->
+
+
+
                 <template v-slot:no-data>
                     <span class="text--secondary">{{$t('notification.no_data')}}</span>
                 </template>
             </v-data-table>
+            </v-form>
             <div class="text-center pt-2" v-if="totalCustomer > itemsPerPage && customers.length > 0">
                 <span class="overline">Hiển thị từ {{customerFrom}} ~ {{customerTo}} trong tổng số {{totalCustomer}} người dùng</span>
                 <v-pagination
@@ -291,12 +426,12 @@
             @close="dialogAddCustomer = false"
             @loadData="funcSuccess"
     ></DialogEditAndAddCustomer>
-    <DialogEditAndAddCustomer
-            v-if="dialogEditCustomer"
-            :dialog="dialogEditCustomer"
-            :customerSelected="customerSelected"
-            type="edit"
-            @close="dialogEditCustomer = false"
-            @loadData="funcSuccess"
-    ></DialogEditAndAddCustomer>
+<!--    <DialogEditAndAddCustomer-->
+<!--            v-if="dialogEditCustomer"-->
+<!--            :dialog="dialogEditCustomer"-->
+<!--            :customerSelected="customerSelected"-->
+<!--            type="edit"-->
+<!--            @close="dialogEditCustomer = false"-->
+<!--            @loadData="funcSuccess"-->
+<!--    ></DialogEditAndAddCustomer>-->
 </v-container>
