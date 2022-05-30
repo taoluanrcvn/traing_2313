@@ -103,15 +103,13 @@ export default {
         }
     },
     async clearSearch() {
-      if (this.hasSearch()) {
-        this.page = 1
-        this.search.name = '';
-        this.search.isSale = '';
-        this.search.minPrice = 0;
-        this.search.maxPrice = 0;
-        this.isSearch = 0;
-        await this.getListProducts();
-      }
+      this.page = 1
+      this.search.name = '';
+      this.search.isSale = '';
+      this.search.minPrice = 0;
+      this.search.maxPrice = 0;
+      this.isSearch = 0;
+      await this.getListProducts();
     },
     async searchProduct() {
       if (!this.hasSearch()) {
@@ -205,7 +203,12 @@ export default {
 
     funcSuccess(productNew) {
       this.getListProducts()
-    }
+    },
+    nameKeydown(e) {
+      if (!/^\d*$/.test(e.key) && e.key  !== 'Backspace') {
+        e.preventDefault();
+      }
+    },
   }
 }
 </script>

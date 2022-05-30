@@ -19,17 +19,18 @@
                     <v-text-field
                         v-model="user.name"
                         :rules="nameRules"
-                        label="Họ tên"
+                        label="Họ tên*"
                         placeholder="Nhập họ và tên"
                         dense
                         outlined
                         required
+                        maxlength="255"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" class="pb-0">
                     <v-text-field
                         v-model="user.email"
-                        label="Email"
+                        label="Email*"
                         :rules="emailRules"
                         required
                         placeholder="Nhập E-mail"
@@ -41,7 +42,7 @@
                   <v-col cols="12" class="pb-0">
                     <v-text-field
                         v-model="password"
-                        label="Mật khẩu"
+                        :label="this.type === 'add' ? 'Mật khẩu*' : 'Mật khẩu'"
                         placeholder="Nhập mật khẩu"
                         type="password"
                         outlined
@@ -49,18 +50,24 @@
                         required
                         :rules="passwordRules"
                         :error-messages="errorsPassword"
+                        :append-icon="showPws ? 'mdi-eye' : 'mdi-eye-off'"
+                        @click:append="showPws = !showPws"
+                        :type="showPws ? 'text' : 'password'"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" class="pb-0">
                     <v-text-field
                         v-model="passwordConfirm"
-                        label="Xác nhận mật khẩu"
                         placeholder="Nhập mật khẩu xác nhận"
+                        :label="this.type === 'add' ? 'Xác nhận mật khẩu*' : 'Xác nhận mật khẩu'"
                         outlined
                         type="password"
                         dense
                         required
                         :error-messages="errorsConfirmPassword"
+                        :append-icon="showPws ? 'mdi-eye' : 'mdi-eye-off'"
+                        @click:append="showPws = !showPws"
+                        :type="showPws ? 'text' : 'password'"
                     ></v-text-field>
                   </v-col>
                   <v-col
@@ -71,7 +78,7 @@
                         v-model="user.group_role"
                         :items="groups"
                         :rules="groupRules"
-                        label="Nhóm"
+                        label="Nhóm*"
                         :error-messages="errorsGroup"
                         dense
                         outlined
@@ -84,8 +91,8 @@
                     <v-select
                         v-model="user.is_active"
                         :items="statusUser"
-                        label="Trạng thái"
-                        hide-details
+                        :rules="statusRules"
+                        label="Trạng thái*"
                         dense
                         outlined
                     ></v-select>
@@ -120,6 +127,7 @@
 import {ServiceUser} from "@/service/service.user";
 import {Toast} from "@/utils/toast";
 import {Role} from "@/utils/class.user";
+import i18n from "@/plugins/i18n";
 
 export default {
   name: "DialogEditUser",
@@ -145,6 +153,9 @@ export default {
         v => !!v || 'Không được để trống!',
         v => (v && v.length > 5) || 'Mật khẩu phải hơn 5 ký tự!',
       ],
+      statusRules: [
+        v => v !== undefined && v !== null || i18n.t('roles.status.required')
+      ],
       valid: true,
       errorsPassword: null,
       errorsEmail: null,
@@ -152,7 +163,8 @@ export default {
       password: this.type === 'edit' ? 'Abc123test' : null,
       passwordConfirm: this.type === 'edit' ? 'Abc123test' : null,
       role: new Role(),
-      errorsGroup: null
+      errorsGroup: null,
+      showPws: false
     }
   },
   created() {
@@ -169,11 +181,14 @@ export default {
       }
     },
     'user.email' (value) {
+      console.log(value.includes(' '))
       if (value.includes(' ')) {
-        this.user.email = value.replace(/^\s+|\s+$/gm,'')
-      }
-      if (this.errorsEmail) {
-        this.errorsEmail = null
+        this.errorsEmail = 'Email không được chứa khoảng trắng'
+        // this.user.email = value.replace(/^\s+|\s+$/gm,'')
+      } else  {
+        if (this.errorsEmail) {
+          this.errorsEmail = null
+        }
       }
     },
     passwordConfirm (value) {
@@ -182,18 +197,18 @@ export default {
     password (value) {
       if (value) {
         if (value.includes(' ')) {
-          this.password = value.replace(/^\s+|\s+$/gm,'')
+          this.errorsPassword = 'Mật khẩu phải có chữ hoa, thường, số và không chứa khoảng trắng!';
         }
         this.checkPassword(value, this.passwordConfirm)
         const regex = new RegExp('(?=[A-Za-z0-9]+$)^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{6,}).*$');
         if (!regex.test(value)) {
-          this.errorsPassword = 'Mật khẩu phải có chữ hoa, thường, và số!';
+          this.errorsPassword = 'Mật khẩu phải có chữ hoa, thường, số và không chưa khoảng trắng!';
         } else {
           this.checkPassword(value, this.passwordConfirm)
           this.errorsPassword = null;
         }
       }
-    }
+    },
 
   },
   methods: {
@@ -212,8 +227,8 @@ export default {
             this.user.passwordConfirm = this.passwordConfirm;
             const response = await ServiceUser.addUser(this.user)
             if (response.statusCode) {
-              await this.$emit('close');
-              await this.$emit('successFunction');
+              this.$emit('close');
+              this.$emit('loadData', response.data);
               await Toast.show('success', 'Đã thêm thành công');
             }
           } catch (e) {
@@ -236,8 +251,8 @@ export default {
           try {
             const response = await ServiceUser.updateUser(this.user);
             if (response.statusCode) {
-              this.$emit('loadData');
-              await this.$emit('close');
+              this.$emit('close');
+              this.$emit('loadData', response.data);
               await Toast.show('success', 'Cập nhật thành công');
             }
           } catch (e) {

@@ -17,6 +17,7 @@
                         hide-details
                         dense
                         outlined
+                        v-on:keyup.enter="searchUser"
                 ></v-text-field>
             </v-col>
 
@@ -32,6 +33,7 @@
                         hide-details
                         dense
                         outlined
+                        v-on:keyup.enter="searchUser"
                 ></v-text-field>
             </v-col>
 
@@ -216,6 +218,10 @@
                         <span class="hi">{{item.is_active === 0 ? 'Mở khóa' : 'Khóa'}}</span>
                     </v-tooltip>
                 </template>
+
+                <template v-slot:no-data>
+                    <span class="text--secondary">{{$t('notification.no_data')}}</span>
+                </template>
             </v-data-table>
             <div class="text-center pt-2" v-if="totalUser > itemsPerPage">
                 <span class="overline">Hiển thị từ {{userFrom}} ~ {{userTo}} trong tổng số {{totalUser}} người dùng</span>
@@ -232,7 +238,7 @@
             :userSelected="userSelected"
             @close="dialogEditUser = false"
             :userCurrent="userCurrent"
-            @loadData="getListUser"
+            @loadData="funcSuccess"
             type="edit"
     ></DialogEditUser>
     <DialogEditUser
@@ -241,6 +247,7 @@
             :userSelected="userSelected"
             @close="dialogAddUser = false"
             :userCurrent="userCurrent"
+            @loadData="funcSuccess"
             type="add"
     ></DialogEditUser>
     <v-snackbar

@@ -3,7 +3,7 @@ export class User {
     name = null;
     email = null;
     verify_email = null;
-    is_active = 0 | 1;
+    is_active = null;
     is_delete = 0 | 1;
     group_role = 'Admin' | 'Reviewer' | 'Editor';
     last_login_at = null;
@@ -32,6 +32,6 @@ export class Product {
     product_price = null;
     is_sales = null;
     inventory = null;
-    description =null;
+    description ='';
 }
 // export default {user , Role};

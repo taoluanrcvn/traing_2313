@@ -41,6 +41,7 @@ export default {
         { text: 'Email', value: 'email', class: "white--text", sortable: false},
         { text: 'Địa chỉ', value: 'address', class: "white--text", sortable: false},
         { text: 'Số điện thoại', value: 'tel_num', class: "white--text", sortable: false},
+        { text: 'Trạng thái', value: 'is_active', class: "white--text", sortable: false},
         { text: 'Hành động', value: 'act', class: "white--text", sortable: false},
       ],
       loadingTable: false,
@@ -167,9 +168,9 @@ export default {
       }
     },
     async clearSearch() {
-      if (!this.hasSearch()) {
-        return;
-      }
+      // if (!this.hasSearch()) {
+      //   return;
+      // }
       this.search.address = '';
       this.search.isActive = '';
       this.search.customer_name = '';

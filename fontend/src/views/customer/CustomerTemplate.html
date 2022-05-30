@@ -16,6 +16,7 @@
                         hide-details
                         dense
                         outlined
+                        v-on:keyup.enter="searchCustomer"
                 ></v-text-field>
             </v-col>
 
@@ -31,6 +32,7 @@
                         hide-details
                         dense
                         outlined
+                        v-on:keyup.enter="searchCustomer"
                 ></v-text-field>
             </v-col>
 
@@ -62,6 +64,7 @@
                         hide-details
                         dense
                         outlined
+                        v-on:keyup.enter="searchCustomer"
                 ></v-text-field>
             </v-col>
 
@@ -197,14 +200,16 @@
                 <template v-slot:item.id="{ item , index }">
                     {{ customerFrom + index}}
                 </template>
+
                 <template v-slot:item.is_active="{ item }">
-                      <span v-if="item.is_active" class="success--text">
-                          {{$t("status.is_active")}}
-                      </span>
+                  <span v-if="item.is_active" class="success--text">
+                      {{$t("status.is_active")}}
+                  </span>
                     <span v-else class="red--text">
                         {{$t("status.lock")}}
                     </span>
                 </template>
+
                 <template v-slot:item.act="{ item }" v-if="!parsed">
                     <v-tooltip top>
                         <template v-slot:activator="{ on, attrs }">
@@ -264,6 +269,9 @@
                         <span>{{item.messages_fail.join(', ')}}</span>
                     </v-tooltip>
 
+                </template>
+                <template v-slot:no-data>
+                    <span class="text--secondary">{{$t('notification.no_data')}}</span>
                 </template>
             </v-data-table>
             <div class="text-center pt-2" v-if="totalCustomer > itemsPerPage && customers.length > 0">

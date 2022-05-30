@@ -19,17 +19,18 @@
                 <v-text-field
                     v-model="customer.customer_name"
                     :rules="nameRules"
-                    label="Họ tên"
+                    :label="$t('field.name_required')"
                     placeholder="Nhập họ và tên"
                     dense
                     outlined
                     required
+                    maxlength="255"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" class="pb-0">
                 <v-text-field
                     v-model="customer.email"
-                    label="Email"
+                    :label="$t('field.email_required')"
                     :rules="emailRules"
                     required
                     placeholder="Nhập E-mail"
@@ -43,19 +44,20 @@
                     v-model="customer.tel_num"
                     :error-messages="errorsPhone"
                     :rules="phoneRules"
-                    label="Điện thoại"
+                    :label="$t('field.phone_required')"
                     placeholder="Điện thoại"
                     type="text"
                     outlined
                     dense
                     required
+                    @keydown="nameKeydown($event)"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" class="pb-0">
                 <v-text-field
                     v-model="customer.address"
                     :rules="addressRules"
-                    label="Địa chỉ"
+                    :label="$t('field.address_required')"
                     placeholder="Địa chỉ"
                     outlined
                     type="text"
@@ -71,7 +73,7 @@
                     :items="listStatus"
                     v-model="customer.is_active"
                     :rules="isActiveRules"
-                    label="Trạng thái"
+                    :label="$t('field.is_active_required')"
                     dense
                     outlined
                 ></v-select>
@@ -189,6 +191,13 @@ export default {
               }
             }
           }
+      }
+    },
+
+    nameKeydown(e) {
+
+      if (/^\D*$/.test(e.key) && e.key  !== 'Backspace') {
+        e.preventDefault();
       }
     }
   }

@@ -19,6 +19,7 @@
                         dense
                         outlined
                         hide-details
+                        v-on:keyup.enter="searchProduct"
                 ></v-text-field>
             </v-col>
 
@@ -52,6 +53,8 @@
                         outlined
                         prefix="$"
                         :hide-details="validFormSearch"
+                        v-on:keyup.enter="searchProduct"
+                        @keydown="nameKeydown($event)"
                 ></v-text-field>
             </v-col>
             <v-col
@@ -69,6 +72,8 @@
                         outlined
                         prefix="$"
                         :hide-details="validFormSearch"
+                        v-on:keyup.enter="searchProduct"
+                        @keydown="nameKeydown($event)"
                 ></v-text-field>
             </v-col>
 
@@ -133,7 +138,7 @@
                     <template v-slot:activator="{ attrs, on }">
                         <v-btn
                                 color="primary"
-                                class="black--textt ml-3 elevation-0"
+                                class="black--text ml-3 elevation-0"
                                 v-bind="attrs"
                                 v-on="on"
                                 small
@@ -175,6 +180,10 @@
                     {{ $n(item.product_price, 'currency', 'en-US') }}
                 </template>
 
+                <template v-slot:item.description="{ item , index }">
+                    {{ item.description === 'null' ? '' : item.description}}
+                </template>
+
                 <template v-slot:item.is_sales="{ item }">
                       <span v-if="item.is_sales === 1 && item.inventory > 0" class="success--text">
                           {{$t("product.status.sale")}}
@@ -184,6 +193,32 @@
                     </span>
                     <span v-else class="warning:--text">
                         {{$t("product.status.sale_out")}}
+                    </span>
+                </template>
+
+                <template v-slot:item.description="{ item , index }">
+                    <v-tooltip bottom>
+                        <template v-slot:activator="{ on, attrs }">
+                             <span
+                                     class="d-block text-truncate"
+                                     style="max-width: 150px;"
+                                     v-bind="attrs"
+                                     v-on="on"
+                             >
+
+                                    {{item.description}}
+                                </span>
+                        </template>
+                            <span>{{item.description}}</span>
+                    </v-tooltip>
+
+                </template>
+                <template v-slot:item.product_name="{ item , index }">
+                    <span
+                            class="d-inline-block text-truncate"
+                            style="max-width: 100px;"
+                    >
+                      {{item.product_name}}
                     </span>
                 </template>
 
@@ -216,6 +251,9 @@
                         </template>
                         <span>{{$t('product.btn.delete')}}</span>
                     </v-tooltip>
+                </template>
+                <template v-slot:no-data>
+                    <span class="text--secondary">{{$t('notification.no_data')}}</span>
                 </template>
             </v-data-table>
             <div class="text-center pt-2" v-if="totalProduct > itemsPerPage">

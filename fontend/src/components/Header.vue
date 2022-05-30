@@ -1,7 +1,7 @@
 <template>
     <v-toolbar dense height="80" elevation="1">
       <v-toolbar-title>
-        <img src="../assets/logo_rivercrane.png" height="50" width="120"/>
+        <img src="@/assets/logo_rivercrane.png" height="50" width="120"/>
       </v-toolbar-title>
       <v-toolbar-items>
         <v-btn v-for="item in items" text :to="{ path: item.path }">

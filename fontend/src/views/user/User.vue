@@ -115,29 +115,28 @@ export default {
     },
 
     async clearSearch() {
-      if (this.hasSearch()) {
-        this.search.group = '';
-        this.search.status = '';
-        this.search.name = '';
-        this.search.email = '';
-        this.isSearch = 0;
-        await this.getListUser();
-      }
+      this.search.group = '';
+      this.search.status = '';
+      this.search.name = '';
+      this.search.email = '';
+      this.isSearch = 0;
+      await this.getListUser();
     },
 
     confirmLockOrUnlockUser(user) {
+      const title = user.is_active === 0 ? 'mở khóa' : 'khóa'
       if (!this.hasPermission(user)) {
-        Toast.show('warning', 'Người dùng này không thể khóa!');
+        Toast.show('warning', `Người dùng này không thể ${title}! `);
         return;
       }
       Swal.fire({
-        title: 'Bạn có chắc muốn khóa người dùng này không?',
-        html: `Người dùng: <strong>${user.name}</strong> sau khi khóa sẽ không đăng nhập được!`,
+        title: `Bạn có chắc muốn ${title} người dùng này không?`,
+        html: `Người dùng: <strong>${user.name}</strong> sau khi ${title} sẽ ${user.is_active === 0 ? 'sẽ có thể đăng nhập lại' : 'không đăng nhập được'}`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Khóa',
+        confirmButtonText: title,
         cancelButtonText: 'Hủy'
       }).then(async (result) => {
         if (result.isConfirmed) {
@@ -259,9 +258,8 @@ export default {
       return false
     },
 
-    addSuccess (userUpdated) {
-      const findIndex = this.users.findIndex(user => user.id === userUpdated.id)
-      this.users[findIndex] = userUpdated;
+    funcSuccess (user) {
+      this.getListUser();
     }
   }
 }

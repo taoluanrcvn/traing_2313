@@ -1,4 +1,4 @@
-const DOMAIN = 'http://127.0.0.1:8000/api/';
+const DOMAIN = 'http://192.168.88.41:8000/api/';
 const PATH = {
   PRODUCT: DOMAIN + 'product/',
   USER: DOMAIN + 'user/',

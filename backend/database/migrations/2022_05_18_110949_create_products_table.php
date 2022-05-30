@@ -20,7 +20,7 @@ class CreateProductsTable extends Migration
             $table->decimal('product_price')->default(0);
             $table->boolean('is_sales')->default(1);
             $table->increments('inventory')->default(10);
-            $table->longText('description');
+            $table->longText('description')->nullable();
             $table->timestamps();
         });
     }

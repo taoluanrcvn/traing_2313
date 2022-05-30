@@ -29,14 +29,20 @@
                                     :rules="emailRules"
                                     :error-messages="errorsEmail"
                                     class="mb-2"
-                                    v-model.trim="email"></v-text-field>
+                                    v-model.trim="email"
+                                    v-on:keyup.enter="login()"
+                                ></v-text-field>
                                 <v-text-field
                                     outlined
                                     label="Mật khẩu"
                                     type="password"
                                     :rules="passwordRules"
                                     :error-messages="errorsPassword"
-                                    v-model.trim="password"></v-text-field>
+                                    v-model.trim="password"
+                                    v-on:keyup.enter="login()"
+                                >
+
+                                </v-text-field>
                             </v-form>
                         </v-card-text>
                         <v-divider></v-divider>
@@ -44,10 +50,12 @@
                             <v-checkbox v-model="remember" label="Remember"></v-checkbox>
                             <v-spacer></v-spacer>
                             <v-btn
-                                   :disabled="!valid"
+                                   :disabled="!valid || btnLogin"
                                    color="success"
                                    class="mr-4"
-                                   @click="login()">
+                                   @click="login()"
+                                   :loading="btnLogin"
+                            >
                                 Đăng nhập
                             </v-btn>
                         </v-card-actions>
@@ -65,6 +73,7 @@ import {Toast} from "@/utils/toast";
 export default {
   data() {
         return {
+            btnLogin: false,
             valid: true,
             platformName: 'River Crane',
             password: null,
@@ -109,6 +118,7 @@ export default {
             const isValid = this.$refs.form.validate()
             if (isValid) {
                 try {
+                    this.btnLogin = true;
                     const data = new FormData();
                     data.append('email', this.email);
                     data.append('password', this.password);
@@ -124,7 +134,6 @@ export default {
                       this.$router.push('users')
                     }
                 } catch (e) {
-                  console.log(e)
                   if (e.status && e.status === 422) {
                     const errors = e.data.messages;
                     if (errors.password) {
@@ -139,6 +148,9 @@ export default {
                       await Toast.show('error', errors.other);
                     }
                   }
+                }
+                finally {
+                  this.btnLogin = false;
                 }
             }
 

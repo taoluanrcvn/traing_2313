@@ -15,30 +15,32 @@
               v-model="valid"
               lazy-validation>
             <v-row>
-              <v-col cols="6">
+              <v-col cols="12" sm="6">
                 <v-row>
                   <v-col cols="12" class="pb-0">
                     <v-text-field
                         v-model="product.product_name"
                         label="Họ tên"
-                        :label="$t('product.label.name')"
+                        :label="$t('product.label.name_required')"
                         :rules="nameRules"
                         dense
                         outlined
                         required
                         :hide-details="valid"
+                        maxlength="255"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" class="pb-0">
                     <v-text-field
                         v-model="product.product_price"
                         :rules="priceRules"
-                        :label="$t('product.label.price_from')"
+                        :label="$t('product.label.price_required')"
                         type="number"
                         dense
                         outlined
                         prefix="$"
                         :hide-details="valid"
+                        @keydown="nameKeydown($event)"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" class="pb-0">
@@ -48,6 +50,7 @@
                         name="input-7-4"
                         :label="$t('product.label.deception')"
                         :hide-details="valid"
+                        maxlength="255"
                     ></v-textarea>
                   </v-col>
                   <v-col cols="12" class="pb-0">
@@ -56,7 +59,7 @@
                         v-model="product.is_sales"
                         :rules="statusRules"
                         :error-messages="errorStatus"
-                        :label="$t('product.label.status')"
+                        :label="$t('product.label.status_required')"
                         dense
                         outlined
                         :hide-details="valid"
@@ -70,20 +73,21 @@
                         v-model="product.inventory"
                         :error-messages="errorInventory"
                         :rules="inventoryRules"
-                        :label="$t('product.label.inventory')"
+                        :label="$t('product.label.inventory_required')"
                         type="number"
                         dense
                         outlined
                         :hide-details="valid"
                         :disabled="product.is_sales == 2"
+                        @keydown="nameKeydown($event)"
                     ></v-text-field>
                   </v-col>
                 </v-row>
               </v-col>
-              <v-col cols="6" class="d-flex flex-column justify-center align-center">
+              <v-col cols="12" sm="6" class="d-flex flex-column justify-center align-center">
                 <div
                     class="base-image-input"
-                    :style="{ 'background-image': `url(${!isChooseImage ? urlImage : ''}${product.product_image})` }"
+                    :style="{ 'background-image': url }"
                     @click="chooseImage"
                 >
                     <span
@@ -163,17 +167,36 @@ export default {
       ],
       inventoryRules: [
         v => v >= 0 || i18n.t('roles.inventory'),
+        v => ( v && v <= 1000 ) ||  i18n.t('roles.max_inventory'),
       ],
       errorsFile: null,
       errorStatus: null,
       errorInventory: null,
-      imageDefault: 'http://localhost:8000/storage/images/production.png',
-      urlImage: 'http://localhost:8000/storage/',
+      imageDefault: 'http://192.168.88.41:8000/storage/images/production.png',
+      urlImage: 'http://192.168.88.41:8000/storage/',
       isChooseImage: false,
     }
   },
   mounted() {
+    if (this.type === 'add') {
+      this.statusProducts[0].disabled = true;
+      this.statusProducts[2].disabled = true
+    } else {
+      this.statusProducts[0].disabled = false;
+      this.statusProducts[2].disabled = false
+    }
     this.product.is_sales = this.product.inventory === 0 ? 2 : this.product.is_sales
+  },
+  computed: {
+    url() {
+      if (!this.isChooseImage && !this.product.product_image) {
+        return 'none'
+      } else if (!this.product.product_image.includes('base64')) {
+        return  `url(http://192.168.88.41:8000/storage/${this.product.product_image})`
+      } else {
+        return `url(${this.product.product_image})`
+      }
+    }
   },
   watch: {
     'product.is_sales'(value) {
@@ -244,7 +267,6 @@ export default {
                 this.$emit('loadData', response.data);
                 await Toast.show('success', i18n.t('notification.update_success'));
               }
-              console.log(response)
             } catch (e) {
               if (e.status && e.status === Number(i18n.t('STATUS_CODE.HTTP_UNPROCESSABLE_ENTITY'))) {
                 if (errors.detail) {
@@ -290,6 +312,11 @@ export default {
         }
       }
     },
+    nameKeydown(e) {
+      if (!/^\d*$/.test(e.key) && e.key  !== 'Backspace') {
+        e.preventDefault();
+      }
+    },
 
     clearFile () {
       this.isChooseImage = false;
@@ -319,6 +346,7 @@ export default {
   color: #333;
   font-size: 18px;
   font-family: Helvetica;
+  border: 1px solid rgba(128, 128, 128, 0.94);
 }
 .placeholder:hover {
   background: #E0E0E0;
