@@ -7,6 +7,7 @@ import {User, Role} from '@/utils/class.user'
 import DialogEditUser from "@/components/DialogEditUser";
 import Swal from 'sweetalert2'
 import {Toast} from "@/utils/toast";
+import i18n from "@/plugins/i18n";
 export default {
   components: {Header, DialogEditUser},
   data() {
@@ -233,7 +234,8 @@ export default {
       if (
           (user.is_admin && this.userCurrent.id !== 1)
           || user.id === this.userCurrent.id
-          || !this.userCurrent.is_admin)
+          || !this.userCurrent.is_admin
+          )
       {
           return false;
       }
@@ -241,7 +243,7 @@ export default {
     },
 
     hasPermissionEditUser(user) {
-      if ( (this.userCurrent.group_role === 'Reviewer' && user.group_role !== 'Reviewer')
+      if ( (this.userCurrent.group_role === 'Reviewer' && user.group_role === 'Reviewer' && user.id !== this.userCurrent.id)
           || (this.userCurrent.group_role === 'Editor' && user.is_admin )
           || (this.userCurrent.group_role === 'Editor' && user.group_role === 'Editor' && user.id !== this.userCurrent.id)
           || (user.is_admin && user.id === 1 && this.userCurrent.id !== 1)

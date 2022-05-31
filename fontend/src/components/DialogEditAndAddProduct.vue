@@ -86,7 +86,7 @@
               </v-col>
               <v-col cols="12" sm="6" class="d-flex flex-column justify-center align-center">
                 <div
-                    class="base-image-input"
+                    class="base-image-input border-image elevation-2 border-2"
                     :style="{ 'background-image': url }"
                     @click="chooseImage"
                 >

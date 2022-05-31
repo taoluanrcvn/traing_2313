@@ -26,24 +26,9 @@ export default {
       pageCount: 0,
       itemsPerPage: 10,
       page: 1,
-      listStatus: [{ value: 0 , text : 'Tạm dừng' }, { value: 1 , text : 'Đang hoạt động' }],
+      listStatus: [{ value: 0 , text : 'Tạm khóa' }, { value: 1 , text : 'Đang hoạt động' }],
       perPages: [10, 20],
       customers: [],
-      headers: [
-        {
-          text: '#',
-          align: 'start',
-          sortable: false,
-          value: 'id',
-          class: "white--text"
-        },
-        { text: 'Họ tên', value: 'customer_name', class: "white--text", sortable: false},
-        { text: 'Email', value: 'email', class: "white--text", sortable: false},
-        { text: 'Địa chỉ', value: 'address', class: "white--text", sortable: false, width: '25%'},
-        { text: 'Số điện thoại', value: 'tel_num', class: "white--text", sortable: false},
-        { text: 'Trạng thái', value: 'is_active', class: "white--text", sortable: false, width: '15%'},
-        { text: 'Hành động', value: 'act', class: "white--text", sortable: false},
-      ],
       loadingTable: false,
       totalCustomer: 0,
       customerFrom: 0,
@@ -89,6 +74,7 @@ export default {
   mounted() {
     this.defaultItem = this.customers[0]
   },
+
   watch: {
     page(value) {
       if (!this.parsed) {
@@ -142,9 +128,31 @@ export default {
       if (this.errorsEmail) this.errorsEmail = null;
     }
   },
+
   computed: {
     showError(arrError) {
         return arrError.join(',')
+    },
+    headers() {
+        let header =  [
+              {
+                text: '#',
+                align: 'start',
+                sortable: false,
+                value: 'id',
+                class: "white--text"
+              },
+              { text: 'Họ tên', value: 'customer_name', class: "white--text", sortable: false},
+              { text: 'Email', value: 'email', class: "white--text", sortable: false},
+              { text: 'Địa chỉ', value: 'address', class: "white--text", sortable: false, width: '25%'},
+              { text: 'Số điện thoại', value: 'tel_num', class: "white--text", sortable: false},
+              { text: 'Trạng thái', value: 'is_active', class: "white--text", sortable: false, width: '15%'},
+              { text: 'Hành động', value: 'act', class: "white--text", sortable: false},
+            ]
+      if (this.parsed) {
+        header.splice(5, 1);
+      }
+      return header;
     }
   },
   created() {
@@ -241,7 +249,7 @@ export default {
     },
 
     handleFileImport(e) {
-      if (this.userCurrent.group_role === i18n.t('group_role.reviewer')) {
+      if (this.userCurrent.group_role === i18n.t('group_role.reviewer') || this.userCurrent.group_role === i18n.t('group_role.editor')) {
         Toast.show('warning', i18n.t('permission.not'));
         return
       }
@@ -435,6 +443,10 @@ export default {
     },
 
     editItem (item) {
+      if (this.userCurrent.group_role === i18n.t('group_role.reviewer')) {
+        Toast.show('warning', i18n.t('permission.not'));
+        return
+      }
       this.editedIndex = this.customers.findIndex(customer => customer.customer_id === item.customer_id);
       this.editedItem = Object.assign({}, item);
     },
@@ -452,7 +464,7 @@ export default {
               Object.assign(this.customers[this.editedIndex], this.editedItem)
             }
             this.close()
-            await Toast.show('success', i18n.t('notification.add_success'));
+            await Toast.show('success', i18n.t('notification.update_success'));
           }
         } catch (e) {
           if (e.status && e.status === Number(i18n.t('STATUS_CODE.HTTP_UNPROCESSABLE_ENTITY'))) {

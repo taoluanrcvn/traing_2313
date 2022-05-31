@@ -72,7 +72,8 @@
     "status": {
       "required": "Chưa chọn trạng thái"
     },
-    "email" : "E-mail đã tồn tại"
+    "email" : "E-mail đã tồn tại",
+    "maxPrice": "Giá bán đến phải lớn hơn Giá bán từ"
   },
   "notification": {
     "add_success": "Thêm thành công",

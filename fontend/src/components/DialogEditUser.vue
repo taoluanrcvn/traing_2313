@@ -277,7 +277,7 @@ export default {
         this.errorsConfirmPassword = null;
         this.errorsPassword = null;
       }
-    }
+    },
   }
 }
 </script>

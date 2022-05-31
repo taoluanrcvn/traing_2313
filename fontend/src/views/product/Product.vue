@@ -34,7 +34,7 @@ export default {
           class: "white--text"
         },
         { text: i18n.t('product.label.name'), value: 'product_name', class: "white--text", sortable: false},
-        { text: i18n.t('product.label.deception'), value: 'description', class: "white--text", sortable: false},
+        { text: i18n.t('product.label.deception'), value: 'description', class: "white--text", sortable: false, width:'30%'},
         { text: i18n.t('product.label.price'), value: 'product_price', class: "white--text", sortable: false},
         { text: i18n.t('product.label.status'), value: 'is_sales', class: "white--text", sortable: false},
         { text: i18n.t('product.label.action'), value: 'act', class: "white--text", sortable: false},
@@ -59,16 +59,32 @@ export default {
       validFormSearch: false,
       dialogAddProduct: false,
       dialogEditProduct: false,
-      productSelected: new Product()
+      productSelected: new Product(),
+      errorMaxPrice: null,
+      errorMinPrice: null
     }
   },
   watch: {
+    'search.minPrice' (priceMin) {
+      if (priceMin >= this.search.maxPrice && this.search.maxPrice !== 0) {
+        this.errorMaxPrice = i18n.t('roles.maxPrice')
+      } else {
+        this.errorMaxPrice = null
+      }
+    },
+    'search.maxPrice' (priceMax) {
+      if (priceMax <= this.search.minPrice && priceMax > 0) {
+        this.errorMaxPrice = i18n.t('roles.maxPrice')
+      } else {
+        this.errorMaxPrice = null
+      }
+    },
     async page() {
       await this.getListProducts()
     },
     itemsPerPage() {
       this.getListProducts()
-    }
+    },
   },
   created() {
     this.getListProducts();
@@ -214,5 +230,10 @@ export default {
 </script>
 
 <style scoped>
-
+.wrap-text-long {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
 </style>

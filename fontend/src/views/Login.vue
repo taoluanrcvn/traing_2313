@@ -40,6 +40,9 @@
                                     :error-messages="errorsPassword"
                                     v-model.trim="password"
                                     v-on:keyup.enter="login()"
+                                    :append-icon="showPws ? 'mdi-eye' : 'mdi-eye-off'"
+                                    @click:append="showPws = !showPws"
+                                    :type="showPws ? 'text' : 'password'"
                                 >
 
                                 </v-text-field>
@@ -89,6 +92,7 @@ export default {
             ],
             errorsEmail: null,
             errorsPassword: null,
+            showPws:false
         }
     },
     watch: {

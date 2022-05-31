@@ -55,6 +55,7 @@
                         :hide-details="validFormSearch"
                         v-on:keyup.enter="searchProduct"
                         @keydown="nameKeydown($event)"
+                        :error-messages="errorMinPrice"
                 ></v-text-field>
             </v-col>
             <v-col
@@ -74,6 +75,7 @@
                         :hide-details="validFormSearch"
                         v-on:keyup.enter="searchProduct"
                         @keydown="nameKeydown($event)"
+                        :error-messages="errorMaxPrice"
                 ></v-text-field>
             </v-col>
 
@@ -200,8 +202,8 @@
                     <v-tooltip bottom>
                         <template v-slot:activator="{ on, attrs }">
                              <span
-                                     class="d-block text-truncate"
-                                     style="max-width: 150px;"
+                                     class="wrap-text-long"
+
                                      v-bind="attrs"
                                      v-on="on"
                              >
