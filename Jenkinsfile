@@ -15,6 +15,13 @@ pipeline {
                 echo 'Running Unit Testing..'
             }
         }
+         stage("composer_install") {
+             steps {
+                sh 'cd backend'
+                sh 'composer install'
+                sh 'vendor/bin/phpunit'
+             }
+         }
         stage('Build') {
             steps {
                 echo 'Building..'
