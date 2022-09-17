@@ -11,7 +11,6 @@ pipeline {
         stage('Test') {
             steps {
                 echo 'Testing..'
-                sh "php artisan test"
                 echo 'Running Unit Testing..'
             }
         }
