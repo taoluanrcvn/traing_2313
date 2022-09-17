@@ -1,7 +1,7 @@
 pipeline {
   agent any
   stages {
-    stage('log version info') {
+    stage('log version info 123') {
       steps {
         sh 'mnv --version'
         sh 'mnv clean install'
